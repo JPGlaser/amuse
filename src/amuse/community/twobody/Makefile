@@ -1,14 +1,16 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
 -include ${AMUSE_DIR}/config.mk
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 all:twobody_worker
 
 twobody_worker: twobody.py
-	$(CODE_GENERATOR) --type=py --mode=mpi -x amuse.community.twobody.interface TwoBodyInterface TwoBodyImplementation -o $@
+	$(CODE_GENERATOR) --type=py --mode=mpi -x interface TwoBodyInterface TwoBodyImplementation -o $@
 	
 clean:
 	$(RM) -f *.bck *.pyc

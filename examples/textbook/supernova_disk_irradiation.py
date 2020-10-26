@@ -6,20 +6,25 @@ from supernova_IIp_Lightcurve import Supernova_IIp
     
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """
-    Compute the mean molecular weight in kg (the average weight of particles in a gas)
-    X, Y, and Z are the mass fractions of Hydrogen, of Helium, and of metals, respectively.
-    x_ion is the ionisation fraction (0 < x_ion < 1), 1 means fully ionised
+    Compute the mean molecular weight in kg (the average weight of
+    particles in a gas) X, Y, and Z are the mass fractions of
+    Hydrogen, of Helium, and of metals, respectively.  x_ion is the
+    ionisation fraction (0 < x_ion < 1), 1 means fully ionised.
     """
     if X is None:
         X = 1.0 - Y - Z
     elif abs(X + Y + Z - 1.0) > 1e-6:
-        raise Exception("Error in calculating mu: mass fractions do not sum to 1.0")
-    return constants.proton_mass / (X*(1.0+x_ion) + Y*(1.0+2.0*x_ion)/4.0 + Z*x_ion/2.0)
+        raise Exception(
+            "Error in calculating mu: mass fractions do not sum to 1.0")
+    return constants.proton_mass / (X*(1.0+x_ion) + Y*(1.0+2.0*x_ion)/4.0
+                                     + Z*x_ion/2.0)
 
-def update_source_particle(rad, time, old_source, efficiency_factor, supernova_IIp):
+def update_source_particle(rad, time, old_source, efficiency_factor,
+                           supernova_IIp):
     source=Particle()
     source.position = old_source.position
-    source.luminosity = efficiency_factor**2 * supernova_IIp.luminosity_at_time(time)/(20.|units.eV)
+    source.luminosity = efficiency_factor**2 \
+                         * supernova_IIp.luminosity_at_time(time)/(20.|units.eV)
     source.flux = source.luminosity
     source.xion = old_source.xion
     source.u = old_source.u
@@ -36,13 +41,16 @@ def print_diagnostics(time, supernova, disk):
     Tmean =  mu() / constants.kB * umean
     Tmax =  mu() / constants.kB * umin
 
-    print "Time=", time.in_(units.day)
-    print "Supernova luminosity:", (supernova.luminosity*(20.|units.eV)).in_(units.LSun)
-    print "Ionization:", disk.xion.min(), disk.xion.mean(), disk.xion.max()
-    print "Intenal energy:", umin, umean, umax
-    print "Temperature:", Tmin, Tmean, Tmax
-    print "Density:", disk.density.min().in_(units.amu/units.cm**3), disk.density.mean().in_(units.amu/units.cm**3), disk.density.max().in_(units.amu/units.cm**3)
-    print "scaleheight:", abs(disk.z.value_in(units.AU)).mean()
+    print("Time=", time.in_(units.day))
+    print("Supernova luminosity:", \
+          (supernova.luminosity*(20.|units.eV)).in_(units.LSun))
+    print("Ionization:", disk.xion.min(), disk.xion.mean(), disk.xion.max())
+    print("Intenal energy:", umin, umean, umax)
+    print("Temperature:", Tmin, Tmean, Tmax)
+    print("Density:", disk.density.min().in_(units.amu/units.cm**3), \
+          disk.density.mean().in_(units.amu/units.cm**3), \
+          disk.density.max().in_(units.amu/units.cm**3))
+    print("scaleheight:", abs(disk.z.value_in(units.AU)).mean())
 
 def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
 
@@ -52,7 +60,7 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
     efficiency_factor = 0.1
     Rsn = efficiency_factor * (x**2 + y**2 + z**2)**0.5
 
-    supernova=Particle()
+    supernova = Particle()
     supernova.position = (x.value_in(units.parsec),
                           y.value_in(units.parsec),
                           z.value_in(units.parsec)) |units.parsec
@@ -75,19 +83,19 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
     stellar.stop()
     star.u = (9. |units.kms)**2
     star.xion = 0.0
-    print star
+    print(star)
 
-    print "M=", Mdisk/Mstar    
+    print("M=", Mdisk/Mstar)
     converter=nbody_system.nbody_to_si(Mstar, 1 | units.AU)
     disk = ProtoPlanetaryDisk(Ndisk, convert_nbody=converter,
                               Rmin=Rin.value_in(units.AU), 
                               Rmax=Rout.value_in(units.AU),
                               q_out=25.0, discfraction=Mdisk/Mstar).result
 ####                              q_out=2.0, discfraction=Mdisk/Mstar).result
-    print disk.x.max().in_(units.AU)
-    print disk.mass.sum().in_(units.MSun)
-    print disk.u.max().in_(units.kms**2)
-    print disk.mass.min().in_(units.MSun)
+    print(disk.x.max().in_(units.AU))
+    print(disk.mass.sum().in_(units.MSun))
+    print(disk.u.max().in_(units.kms**2))
+    print(disk.mass.min().in_(units.MSun))
     disk.flux = 0. | units.s**-1
     disk.xion = 0.0
 
@@ -122,13 +130,14 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
     hydro_to_disk.copy()
     hydro_to_star.copy()
     
-    radiative = SPHRay(redirection="file", number_of_workers=4)#, debugger="gdb")
+    radiative = SPHRay(redirection="file",
+                       number_of_workers=4)#, debugger="gdb")
     radiative.parameters.number_of_rays=Nray/dt
-    print dt.in_(units.yr)
+    print(dt.in_(units.yr))
     radiative.parameters.default_spectral_type=-3.
     radiative.parameters.box_size=10000. | units.AU
     radiative.parameters.ionization_temperature_solver=2
-    print radiative.parameters
+    print(radiative.parameters)
 
 #    radiative.src_particles.add_particle(star)
     radiative.src_particles.add_particle(supernova)
@@ -137,14 +146,14 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
     gas_to_rad = disk.new_channel_to(radiative.gas_particles)
     rad_to_gas = radiative.gas_particles.new_channel_to(disk)
     
-    print "Before"
-    print "Luminosity:", radiative.src_particles.luminosity
-    print "min ionization:", radiative.gas_particles.xion.min()
-    print "average Xion:", radiative.gas_particles.xion.mean()
-    print "max ionization:", radiative.gas_particles.xion.max()
-    print "min u:", radiative.gas_particles.u.min()
-    print "average u:", radiative.gas_particles.u.mean()
-    print "max u:", radiative.gas_particles.u.max()
+    print("Before")
+    print("Luminosity:", radiative.src_particles.luminosity)
+    print("min ionization:", radiative.gas_particles.xion.min())
+    print("average Xion:", radiative.gas_particles.xion.mean())
+    print("max ionization:", radiative.gas_particles.xion.max())
+    print("min u:", radiative.gas_particles.u.min())
+    print("average u:", radiative.gas_particles.u.mean())
+    print("max u:", radiative.gas_particles.u.max())
 
     Tmean = [] | units.K
     Tmin = [] | units.K
@@ -152,10 +161,11 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
     t = [] | units.day
     while radiative.model_time<t_end:
 
-        supernova = update_source_particle(radiative, time+0.5*dt, supernova, efficiency_factor, supernova_IIp)
+        supernova = update_source_particle(radiative, time+0.5*dt, supernova,
+                                           efficiency_factor, supernova_IIp)
 
         radiative.evolve_model(time+0.5*dt)
-        print "RT done at time:", time.in_(units.day)
+        print("RT done at time:", time.in_(units.day))
         rad_to_gas.copy()
 
         disk_to_hydro.copy()
@@ -164,10 +174,11 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
         hydro_to_disk.copy()
         hydro_to_star.copy()
 
-        supernova = update_source_particle(radiative, time+dt, supernova, efficiency_factor, supernova_IIp)
+        supernova = update_source_particle(radiative, time+dt, supernova,
+                                           efficiency_factor, supernova_IIp)
 
         radiative.evolve_model(time+dt)
-        print "RT done at time:", time.in_(units.day)
+        print("RT done at time:", time.in_(units.day))
         rad_to_gas.copy()
 
         time += dt
@@ -181,8 +192,9 @@ def main(Ndisk, Mstar, Mdisk, Rin, Rout, t_end, Nray, x, y, z):
 
         #write_set_to_file(disk, "disk_irradiation.amuse", "amuse")
         
-        print "timescale:", (disk.mass.sum().value_in(units.amu)/((Rout/Rsn)**2*supernova.luminosity)).in_(units.yr)
-        print "scaleheight:", abs(disk.z.value_in(units.AU)).mean()
+        print("timescale:", (disk.mass.sum().value_in(units.amu) \
+                              / ((Rout/Rsn)**2*supernova.luminosity)).in_(units.yr))
+        print("scaleheight:", abs(disk.z.value_in(units.AU)).mean())
         
         #pyplot.hist2d(abs(disk.x.value_in(units.AU)), abs(numpy.log10(Temperature.value_in(units.K))), bins=200)
        # pyplot.hist2d(abs(disk.x.value_in(units.AU)), abs(disk.z.value_in(units.AU)), bins=200)
@@ -207,7 +219,8 @@ def plot_temperature(t, tmin, tmean, tmax):
 
     x_label = "t [day]"
     y_label = 'T [K]'
-    figure = single_frame(x_label, y_label, logx=False, logy=False, xsize=14, ysize=8)
+    figure = single_frame(x_label, y_label, logx=False, logy=False,
+                          xsize=14, ysize=8)
     pyplot.plot(t.value_in(units.day), tmean.value_in(units.K), c='k')
     pyplot.plot(t.value_in(units.day), tmin.value_in(units.K), c='r')
     pyplot.plot(t.value_in(units.day), tmax.value_in(units.K), c='b')
@@ -221,12 +234,13 @@ def plot_ionization_fraction(pos, xion):
         r.append(numpy.log10(pi.value_in(units.AU)+0.000001))
         r.append(pi.value_in(units.AU))
         x.append(numpy.log10(xi+0.000001))
-    r, x = zip(*sorted(zip(r, x)))
+    r, x = list(zip(*sorted(zip(r, x))))
     
     from matplotlib import pyplot
     x_label = "r [pc]"
     y_label = r'$\xi_{\rm ion}$'
-    figure = single_frame(x_label, y_label, logx=False, logy=False, xsize=14, ysize=8)
+    figure = single_frame(x_label, y_label, logx=False, logy=False,
+                          xsize=14, ysize=8)
     pyplot.scatter(r, x, c=get_distinct(1), lw=0, s=100)
 #    pyplot.xlim(-1, 1)
 #    pyplot.ylim(-0.04, 1.19)

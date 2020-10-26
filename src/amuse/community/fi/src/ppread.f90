@@ -15,6 +15,13 @@ subroutine postprocessread
     tempr(1:nsph)=tempvect(1:nsph)
   endif
  
+  if(sortpart) then
+    if(verbosity.GT.0) print*,'...sorting...'
+    call mortonsort
+! fix order of tempr
+    if(allocated(tempr)) call sort_additional_real(nsph,tempr)
+  endif  
+ 
   if(input(1).EQ.0) call terror(' input error: need masses')
 
   if(input(42).EQ.0) then
@@ -36,6 +43,7 @@ subroutine postprocessread
   call activateparts
  
   if(usesph.AND.nsph.GT.0) then
+    if(verbosity.GT.0) print*,'...init sph...'
     veltpos(1:nsph,1:ndim)=vel(1:nsph,1:ndim) ! cosmofac veltpos is pec. vel.
     call makesphtree
     if(input(13).EQ.0) then
@@ -83,9 +91,10 @@ subroutine postprocessread
 
   tvel(1:nbodies)=tnow
 
+  if(verbosity.GT.0) print*,'...init grav...'
   call zeroacc
   call zeropot
-  acc(1:nbodies,4)=0.
+  aacc(1:nbodies)=0.
   call gravity('both')
   if(.not.directsum.and.gdgop) then
     call zeroacc
@@ -196,7 +205,7 @@ subroutine postprocessread
     call refresh_itimestp
   endif
    
-  if(sortpart) call mortonsort
+!  if(sortpart) call mortonsort
 
   if(allocated(tempr)) deallocate(tempr)
   

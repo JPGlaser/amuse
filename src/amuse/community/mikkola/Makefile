@@ -1,6 +1,8 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
 -include ${AMUSE_DIR}/config.mk
 
 MPIFC ?= mpif90
@@ -19,9 +21,7 @@ export F77FLAGS
 
 CODELIB = src/libMikkola.a
 
-AMUSE_DIR?=../../amuse
-
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 all: mikkola_worker 
 
@@ -40,7 +40,7 @@ worker_code.f90: interface.py
 
 mikkola_worker: worker_code.f90 $(CODELIB) $(OBJS)
 #	$(MPIFC) $(CXXFLAGS) $(FS_FLAGS) $< $(OBJS) $(CODELIB) -o $@ $(FS_LIBS)
-	$(MPIFC) $(FFLAGS) $(FS_FLAGS) $(LDFLAGS) $< $(OBJS) $(CODELIB) -o $@ $(FS_LIBS)  $(LIBS)
+	$(MPIFC) $(FFLAGS) $(FS_FLAGS) $(SC_FLAGS) $(LDFLAGS) $< $(OBJS) $(CODELIB) -o $@ $(FS_LIBS)  $(LIBS) $(SC_FCLIBS)
 
 %.o: %.f90
-	$(FC) $(FFLAGS) -c -o $@ $<
+	$(FC) $(FFLAGS) $(SC_FLAGS) -c -o $@ $<

@@ -11,10 +11,9 @@ class BHTreeInterface(
     StoppingConditionInterface,
     SinglePointGravityFieldInterface):
     """
-        .. [#] Barnes, J., Hut, P., A Hierarchical O(N log N) force-calculation algorithm, *Nature*, **4**, 324 (1986)   
+        .. [#] Barnes, J., Hut, P., A Hierarchical O(N log N) force-calculation algorithm, *Nature*, **4**, 324 (1986) [1986Natur.324..446B]
     """
     include_headers = ['interface.h', 'worker_code.h', 'stopcond.h']
-    __so_module__ = 'bhtree_cython'
     
     def __init__(self, convert_nbody = None, mode = 'cpu', **kwargs):
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **kwargs)
@@ -251,43 +250,43 @@ class BHTree(GravitationalDynamics, GravityFieldCode):
             **options
         )     
             
-    def define_parameters(self, object):
-        object.add_method_parameter(
+    def define_parameters(self, handler):
+        handler.add_method_parameter(
             "get_epsilon_squared",
             "set_epsilon_squared", 
             "epsilon_squared", 
             "smoothing parameter for gravity calculations", 
             default_value = 0.125 | nbody_system.length * nbody_system.length
         )
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_time_step",
             "set_time_step",
             "timestep",
             "constant timestep for iteration", 
             default_value = 0.015625 | nbody_system.time
         )
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_theta_for_tree",
             "set_theta_for_tree",
             "opening_angle", 
             "opening angle, theta, for building the tree: between 0 and 1", 
             default_value = 0.75
         )
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_use_self_gravity",
             "set_use_self_gravity",
             "use_self_gravity", 
             "flag for usage of self gravity, 1 or 0 (true or false)", 
             default_value = 1
         )
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_ncrit_for_tree",
             "set_ncrit_for_tree",
             "ncrit_for_tree", 
             "Ncrit, the maximum number of particles sharing an interaction list", 
             default_value = 12
         )
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_dt_dia",
             "set_dt_dia",
             "dt_dia", 
@@ -295,7 +294,7 @@ class BHTree(GravitationalDynamics, GravityFieldCode):
             default_value = 1.0 | nbody_system.time
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_begin_time",
             "set_begin_time",
             "begin_time",
@@ -303,36 +302,39 @@ class BHTree(GravitationalDynamics, GravityFieldCode):
             default_value = 0.0 | nbody_system.time
         )
         
-        self.stopping_conditions.define_parameters(object)
+        self.stopping_conditions.define_parameters(handler)
         
-    def define_methods(self, object):
-        GravitationalDynamics.define_methods(self, object)
+    def define_methods(self, handler):
+        GravitationalDynamics.define_methods(self, handler)
         
-        object.add_method(
+        handler.add_method(
             "get_time_step",
             (),
-            (nbody_system.time, object.ERROR_CODE,)
+            (nbody_system.time, handler.ERROR_CODE,)
         )
 
-        object.add_method(
+        handler.add_method(
             "set_time_step",
             (nbody_system.time, ),
-            (object.ERROR_CODE,)
+            (handler.ERROR_CODE,)
         )
 
 
 
-        self.stopping_conditions.define_methods(object)
+        self.stopping_conditions.define_methods(handler)
         
-    def define_state(self, object):
-        GravitationalDynamics.define_state(self, object)
-        GravityFieldCode.define_state(self, object)
+    def define_state(self, handler):
+        GravitationalDynamics.define_state(self, handler)
+        GravityFieldCode.define_state(self, handler)
         
-        self.stopping_conditions.define_state(object)
+        self.stopping_conditions.define_state(handler)
 
 
-    def define_particle_sets(self, object):
-        GravitationalDynamics.define_particle_sets(self, object)
-        self.stopping_conditions.define_particle_set(object)
+    def define_particle_sets(self, handler):
+        GravitationalDynamics.define_particle_sets(self, handler)
+        self.stopping_conditions.define_particle_set(handler)
 
     
+
+
+Bhtree = BHTree

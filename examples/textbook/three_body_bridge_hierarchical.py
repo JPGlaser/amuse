@@ -43,15 +43,17 @@ def main():
     channel_from_planet_to_framework = planet_gravity.particles.new_channel_to(ss)
     channel_from_moon_to_framework = moon_gravity.particles.new_channel_to(ss)
 
-    write_set_to_file(ss, filename, 'hdf5')
-    
+    write_set_to_file(ss, filename, 'hdf5', overwrite_file=True)
+
+###BOOKLISTSTART###    
     sp_gravity = bridge.Bridge()
-    sp_gravity.add_system(moon_gravity, (planet_gravity,) )
-    sp_gravity.add_system(planet_gravity, (moon_gravity,) )
+    sp_gravity.add_system(moon_gravity, (planet_gravity,))
+    sp_gravity.add_system(planet_gravity, (moon_gravity,))
 
     gravity = bridge.Bridge()
-    gravity.add_system(sp_gravity, (star_gravity,) )
-    gravity.add_system(star_gravity, (sp_gravity,) )
+    gravity.add_system(sp_gravity, (star_gravity,))
+    gravity.add_system(star_gravity, (sp_gravity,))
+###BOOKLISTSTOP###    
 
     Etot_init = gravity.kinetic_energy + gravity.potential_energy
     Etot_prev = Etot_init
@@ -70,14 +72,14 @@ def main():
         channel_from_star_to_framework.copy()
         channel_from_planet_to_framework.copy()
         channel_from_moon_to_framework.copy()
-        write_set_to_file(ss, filename, 'hdf5')
+        write_set_to_file(ss, filename, 'hdf5', append_to_file=True)
 
         Ekin = gravity.kinetic_energy 
         Epot = gravity.potential_energy
         Etot = Ekin + Epot
-        print "T=", time, 
-        print "E= ", Etot, "Q= ", Ekin/Epot,
-        print "dE=", (Etot_init-Etot)/Etot, "ddE=", (Etot_prev-Etot)/Etot 
+        print("T=", time, end=' ') 
+        print("E= ", Etot, "Q= ", Ekin/Epot, end=' ')
+        print("dE=", (Etot_init-Etot)/Etot, "ddE=", (Etot_prev-Etot)/Etot) 
         Etot_prev = Etot
     gravity.stop()
 

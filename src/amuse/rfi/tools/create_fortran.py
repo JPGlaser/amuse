@@ -50,7 +50,10 @@ ARRAY_DEFINES_STRING = """
   
   real*8, allocatable, target :: doubles_in(:)
   real*8, allocatable, target :: doubles_out(:)
-  
+
+  logical*1, allocatable, target :: c_booleans_in(:)
+  logical*1, allocatable, target :: c_booleans_out(:)
+
   logical, allocatable, target :: booleans_in(:)
   logical, allocatable, target :: booleans_out(:)
   
@@ -80,6 +83,9 @@ ISO_ARRAY_DEFINES_STRING = """
   real (c_double), allocatable, target :: doubles_in(:)
   real (c_double), allocatable, target :: doubles_out(:)
   
+  logical (c_bool), allocatable, target :: c_booleans_in(:)
+  logical (c_bool), allocatable, target :: c_booleans_out(:)
+
   logical, allocatable, target :: booleans_in(:)
   logical, allocatable, target :: booleans_out(:)
   
@@ -88,9 +94,12 @@ ISO_ARRAY_DEFINES_STRING = """
 
   character (c_char), allocatable, target :: strings_in(:) * 256
   character (c_char), allocatable, target :: strings_out(:) * 256
+
+  character (len=1000000) :: characters_in
+  character (len=1000000) :: characters_out
   
-  character (kind=c_char, len=1000000), target :: characters_in
-  character (kind=c_char, len=1000000), target :: characters_out
+  character (kind=c_char), target :: c_characters_in(1000000)
+  character (kind=c_char), target :: c_characters_out(1000000)
 """
 
 MODULE_GLOBALS_STRING = """
@@ -107,8 +116,8 @@ NOMPI_MODULE_GLOBALS_STRING = """
 
 MPI_INTERNAL_FUNCTIONS_STRING = """
 FUNCTION internal__open_port(outval)
+    USE mpi
     IMPLICIT NONE
-    INCLUDE 'mpif.h'
     character(len=MPI_MAX_PORT_NAME+1), intent(out) :: outval
     INTEGER :: internal__open_port
     INTEGER :: ierror
@@ -117,8 +126,8 @@ FUNCTION internal__open_port(outval)
 END FUNCTION
 
 FUNCTION internal__accept_on_port(port_identifier, comm_identifier)
+    USE mpi
     IMPLICIT NONE
-    INCLUDE 'mpif.h'
     character(len=*), intent(in) :: port_identifier
     INTEGER, intent(out) :: comm_identifier
     INTEGER :: internal__accept_on_port
@@ -134,10 +143,10 @@ FUNCTION internal__accept_on_port(port_identifier, comm_identifier)
     call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierror);
     IF (rank .EQ. 0) THEN
         call MPI_Comm_accept(port_identifier, MPI_INFO_NULL, 0,  MPI_COMM_SELF, communicator, ierror)
-        call MPI_Intercomm_merge(communicator, 0, mcommunicator, ierror)
+        call MPI_Intercomm_merge(communicator, .FALSE., mcommunicator, ierror)
         call MPI_Intercomm_create(MPI_COMM_WORLD, 0, mcommunicator, 1, 65, communicators(last_communicator_id), ierror)
-        call MPI_Comm_disconnect(mcommunicator, ierror)
-        call MPI_Comm_disconnect(communicator, ierror)
+        call MPI_Comm_free(mcommunicator, ierror)
+        call MPI_Comm_free(communicator, ierror)
     ELSE
         call MPI_Intercomm_create(MPI_COMM_WORLD,0, MPI_COMM_NULL, 1, 65, communicators(last_communicator_id), ierror)
     END IF
@@ -147,8 +156,8 @@ FUNCTION internal__accept_on_port(port_identifier, comm_identifier)
 END FUNCTION
 
 FUNCTION internal__connect_to_port(port_identifier, comm_identifier)
+    USE MPI
     IMPLICIT NONE
-    INCLUDE 'mpif.h'
     character(len=*), intent(in) :: port_identifier
     INTEGER, intent(out) :: comm_identifier
     INTEGER :: internal__connect_to_port
@@ -165,10 +174,10 @@ FUNCTION internal__connect_to_port(port_identifier, comm_identifier)
     
     IF (rank .EQ. 0) THEN
         call MPI_Comm_connect(port_identifier, MPI_INFO_NULL, 0,  MPI_COMM_SELF, communicator, ierror)
-        call MPI_Intercomm_merge(communicator, 1, mcommunicator, ierror)
+        call MPI_Intercomm_merge(communicator, .TRUE., mcommunicator, ierror)
         call MPI_Intercomm_create(MPI_COMM_WORLD, 0, mcommunicator, 0, 65, communicators(last_communicator_id), ierror)
-        call MPI_Comm_disconnect(mcommunicator, ierror)
-        call MPI_Comm_disconnect(communicator, ierror)
+        call MPI_Comm_free(mcommunicator, ierror)
+        call MPI_Comm_free(communicator, ierror)
     ELSE
         call MPI_Intercomm_create(MPI_COMM_WORLD,0, MPI_COMM_NULL, 1, 65, communicators(last_communicator_id), ierror)
     END IF
@@ -179,8 +188,8 @@ END FUNCTION
 
 
 FUNCTION  internal__activate_communicator(comm_identifier)
+    USE mpi
     IMPLICIT NONE
-    INCLUDE 'mpif.h'
     INTEGER, intent(in) :: comm_identifier
     INTEGER :: internal__activate_communicator
     
@@ -270,10 +279,9 @@ POLLING_FUNCTIONS_STRING = """
 RECV_HEADER_SLEEP_STRING = """
     SUBROUTINE mpi_recv_header(parent, ioerror)
         use iso_c_binding
+        use mpi
         implicit none
-        
-        INCLUDE 'mpif.h'
-      
+              
         integer,intent(in) :: parent
         integer,intent(inout) :: ioerror
         integer :: request_status(MPI_STATUS_SIZE),header_request
@@ -305,8 +313,8 @@ RECV_HEADER_SLEEP_STRING = """
 
 RECV_HEADER_WAIT_STRING = """
     SUBROUTINE mpi_recv_header(parent, ioerror)
+        use mpi
         implicit none
-        INCLUDE 'mpif.h'
         integer,intent(in) :: parent
         integer,intent(inout) :: ioerror
         integer :: request_status(MPI_STATUS_SIZE),header_request
@@ -324,10 +332,9 @@ EMPTY_RUN_LOOP_MPI_STRING = """
 
 RUN_LOOP_MPI_STRING = """
     SUBROUTINE run_loop_mpi
+      use mpi
       implicit none
-      
-      INCLUDE 'mpif.h'
-      
+            
       integer :: provided
       integer :: rank, parent, ioerror, max_call_count = 255
       integer :: must_run_loop, maximum_size, total_string_length
@@ -343,6 +350,8 @@ RUN_LOOP_MPI_STRING = """
       ALLOCATE(floats_out(max_call_count * MAX_FLOATS_OUT))
       ALLOCATE(doubles_in(max_call_count * MAX_DOUBLES_IN))
       ALLOCATE(doubles_out(max_call_count * MAX_DOUBLES_OUT))
+      ALLOCATE(c_booleans_in(max_call_count * MAX_BOOLEANS_IN))
+      ALLOCATE(c_booleans_out(max_call_count * MAX_BOOLEANS_OUT))
       ALLOCATE(booleans_in(max_call_count * MAX_BOOLEANS_IN))
       ALLOCATE(booleans_out(max_call_count * MAX_BOOLEANS_OUT))
       ALLOCATE(string_sizes_in(max_call_count * MAX_STRINGS_IN))
@@ -384,6 +393,8 @@ RUN_LOOP_MPI_STRING = """
           DEALLOCATE(floats_out)
           DEALLOCATE(doubles_in)
           DEALLOCATE(doubles_out)
+          DEALLOCATE(c_booleans_in)
+          DEALLOCATE(c_booleans_out)
           DEALLOCATE(booleans_in)
           DEALLOCATE(booleans_out)
           DEALLOCATE(string_sizes_in)
@@ -398,6 +409,8 @@ RUN_LOOP_MPI_STRING = """
           ALLOCATE(floats_out(max_call_count * MAX_FLOATS_OUT))
           ALLOCATE(doubles_in(max_call_count * MAX_DOUBLES_IN))
           ALLOCATE(doubles_out(max_call_count * MAX_DOUBLES_OUT))
+          ALLOCATE(c_booleans_in(max_call_count * MAX_BOOLEANS_IN))
+          ALLOCATE(c_booleans_out(max_call_count * MAX_BOOLEANS_OUT))
           ALLOCATE(booleans_in(max_call_count * MAX_BOOLEANS_IN))
           ALLOCATE(booleans_out(max_call_count * MAX_BOOLEANS_OUT))
           ALLOCATE(string_sizes_in(max_call_count * MAX_STRINGS_IN))
@@ -419,7 +432,12 @@ RUN_LOOP_MPI_STRING = """
           call MPI_BCast(doubles_in, header_in(HEADER_DOUBLE_COUNT), MPI_REAL8, 0, parent, ioError);
         end if
         if (header_in(HEADER_BOOLEAN_COUNT) .gt. 0) then
-          call MPI_BCast(booleans_in, header_in(HEADER_BOOLEAN_COUNT), MPI_LOGICAL, 0, parent, ioError);
+          ! some older MPI do not define MPI_C_BOOL; this seems to work ok
+          ! maybe booleans_in in this call should be replaced by char (more portable) or logical*1  
+          call MPI_BCast(c_booleans_in, header_in(HEADER_BOOLEAN_COUNT), MPI_BYTE, 0, parent, ioError);
+          do i=1,header_in(HEADER_BOOLEAN_COUNT)
+              booleans_in(i)=logical(c_booleans_in(i))
+          enddo
         end if
         if (header_in(HEADER_STRING_COUNT) .gt. 0) then
           strings_in = ' '
@@ -433,6 +451,16 @@ RUN_LOOP_MPI_STRING = """
                 maximum_size = string_sizes_in(i)
               end if
           end do
+
+          if(maximum_size.GT.256) then
+            print*, "fortran_worker reports too large string"
+            stop          
+          endif
+
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_worker reports too large string message"
+            stop
+          endif
           
           call MPI_BCast(characters_in, total_string_length, MPI_CHARACTER, 0, parent, ioError);
           
@@ -444,7 +472,6 @@ RUN_LOOP_MPI_STRING = """
               offset = offset + string_sizes_in(i) + 1
               !print*, 'fortran: strings_in(i) ', i, strings_in(i) , ' of length ', string_sizes_in(i), &
               !' actually of size ', len_trim(strings_in(i))
-
           end do
           
         end if
@@ -477,7 +504,10 @@ RUN_LOOP_MPI_STRING = """
             call MPI_SEND(doubles_out, header_out(HEADER_DOUBLE_COUNT), MPI_REAL8, 0, 999, parent, ioerror)
           end if
           if (header_out(HEADER_BOOLEAN_COUNT) .gt. 0) then
-            call MPI_SEND(booleans_out, header_out(HEADER_BOOLEAN_COUNT), MPI_LOGICAL, 0, 999, parent, ioerror)
+            do i=1,header_out(HEADER_BOOLEAN_COUNT)
+              c_booleans_out(i)=booleans_out(i)
+            enddo
+            call MPI_SEND(c_booleans_out, header_out(HEADER_BOOLEAN_COUNT), MPI_BYTE, 0, 999, parent, ioerror)
           end if
        
           if (header_out(HEADER_STRING_COUNT) .gt. 0) then
@@ -492,8 +522,14 @@ RUN_LOOP_MPI_STRING = """
               
               characters_out(offset:offset+string_sizes_out(i)) = strings_out(i)
               offset = offset + string_sizes_out(i) + 1
-              characters_out(offset:offset) = char(0)
+              characters_out(offset-1:offset-1) = char(0)
             end do
+
+          total_string_length=offset-1
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_worker reports too large string message"
+            stop
+          endif
             
             call MPI_SEND(string_sizes_out, header_out(HEADER_STRING_COUNT), MPI_INTEGER, 0, 999, parent, ioerror)
             call MPI_SEND(characters_out, offset -1, MPI_CHARACTER, 0, 999, parent, ioerror)
@@ -532,8 +568,8 @@ RUN_LOOP_SOCKETS_STRING = """
       implicit none
     
       integer :: max_call_count = 255
-      integer :: must_run_loop
-      integer i, call_count, port
+      integer :: must_run_loop, maximum_size, total_string_length
+      integer :: i, offset, call_count, port
       character(len=32) :: port_string
       character(kind=c_char, len=64) :: host
       logical (c_bool), allocatable, target :: c_booleans_in(:)
@@ -637,11 +673,43 @@ RUN_LOOP_SOCKETS_STRING = """
           strings_in = ' '
           call receive_integers(c_loc(string_sizes_in), header_in(HEADER_STRING_COUNT))
 
+          maximum_size = 0
+          total_string_length = 0
+          do i = 1, header_in(HEADER_STRING_COUNT), 1
+              total_string_length = total_string_length + string_sizes_in(i) + 1
+              if (string_sizes_in(i) .gt. maximum_size) then
+                maximum_size = string_sizes_in(i)
+              end if
+          end do
+
+          if(maximum_size.GT.256) then
+            print*, "fortran_worker reports too large string"
+            stop          
+          endif
+
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_worker reports too large string message"
+            stop
+          endif
+          
+          call receive_string(c_loc(c_characters_in), total_string_length)
+          
+          ! this trick is necessary on older gfortran compilers (~<4.9)
+          ! as c_loc needs character(len=1)
+          do i=1, total_string_length
+            characters_in(i:i)=c_characters_in(i)
+          enddo
+          
+          offset = 1
           do i = 1, header_in(HEADER_STRING_COUNT), 1
               strings_in(i) = ' '
-              call receive_string(c_loc(strings_in(i)), string_sizes_in(i))
+              strings_in(i)  = characters_in(offset : (offset + string_sizes_in(i)))
+              strings_in(i)((string_sizes_in(i) + 1):(string_sizes_in(i) + 1)) = ' ' 
+              offset = offset + string_sizes_in(i) + 1
+              !print*, 'fortran: strings_in(i) ', i, strings_in(i) , ' of length ', string_sizes_in(i), &
+              !' actually of size ', len_trim(strings_in(i))
           end do
-          
+
         end if
         
         header_out = 0
@@ -678,19 +746,32 @@ RUN_LOOP_SOCKETS_STRING = """
         end if
    
         if (header_out(HEADER_STRING_COUNT) .gt. 0) then
-      
+          offset = 1
           do i = 1, header_out(HEADER_STRING_COUNT),1
+              
             string_sizes_out(i) = len_trim(strings_out(i))
-            
-            !print*, 'fortran: sending strings, strings_out(i) ', i, strings_out(i) , ' of length ', string_sizes_out(i), &
-            !'actually of size ', len_trim(strings_out(i))
+              
+              !print*, 'fortran: sending strings, strings_out(i) ', i, strings_out(i) , ' of length ', string_sizes_out(i), &
+              !' actually of size ', len_trim(strings_out(i))
+              
+            characters_out(offset:offset+string_sizes_out(i)) = strings_out(i)
+            offset = offset + string_sizes_out(i) + 1
+            characters_out(offset-1:offset-1) = char(0)
           end do
-        
-          call send_integers(c_loc(string_sizes_out), header_out(HEADER_STRING_COUNT))
+
+          total_string_length=offset-1
+
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_worker reports too large string message"
+            stop
+          endif
           
-          do i = 1, header_out(HEADER_STRING_COUNT),1
-            call send_string(c_loc(strings_out(i)), string_sizes_out(i))
-          end do
+          do i=1, total_string_length
+            c_characters_out(i)=characters_out(i:i)
+          enddo
+
+          call send_integers(c_loc(string_sizes_out), header_out(HEADER_STRING_COUNT))
+          call send_string(c_loc(c_characters_out), offset-1 )
         end if
       end do
     
@@ -729,15 +810,14 @@ RUN_LOOP_SOCKETS_MPI_STRING = """
     SUBROUTINE run_loop_sockets_mpi
       use iso_c_binding
       use FortranSocketsInterface
+      use mpi
 
       implicit none
-      
-      include 'mpif.h'
-      
+            
       integer :: provided
       integer :: max_call_count = 255
-      integer :: must_run_loop
-      integer i, call_count, port, rank, ioerror
+      integer :: must_run_loop, maximum_size, total_string_length
+      integer :: i, offset, call_count, port, rank, ioerror
       character(len=32) :: port_string
       character(kind=c_char, len=64) :: host
       logical (c_bool), allocatable, target :: c_booleans_in(:)
@@ -865,22 +945,52 @@ RUN_LOOP_SOCKETS_MPI_STRING = """
         end if
         
         if (header_in(HEADER_STRING_COUNT) .gt. 0) then
-
           strings_in = ' '
-            
+                    
           if (rank .eq. 0) then
             call receive_integers(c_loc(string_sizes_in), header_in(HEADER_STRING_COUNT))
           end if
-            
           call MPI_BCast(string_sizes_in, header_in(HEADER_STRING_COUNT), MPI_INTEGER, 0, MPI_COMM_WORLD, ioError);
 
+          maximum_size = 0
+          total_string_length = 0
           do i = 1, header_in(HEADER_STRING_COUNT), 1
-            strings_in(i) = ' '
-            if (rank .eq. 0) then
-              call receive_string(c_loc(strings_in(i)), string_sizes_in(i))
-            end if
-            call MPI_BCast(strings_in(i), string_sizes_in(i), MPI_CHARACTER, 0, MPI_COMM_WORLD, ioError);
+              total_string_length = total_string_length + string_sizes_in(i) + 1
+              if (string_sizes_in(i) .gt. maximum_size) then
+                maximum_size = string_sizes_in(i)
+              end if
           end do
+
+          if(maximum_size.GT.256) then
+            print*, "fortran_worker reports too large string"
+            stop          
+          endif
+
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_worker reports too large string message"
+            stop
+          endif
+
+          if (rank .eq. 0) then
+            call receive_string(c_loc(c_characters_in), total_string_length)
+          endif
+          
+          do i=1, total_string_length
+            characters_in(i:i)=c_characters_in(i)
+          enddo
+          
+          call MPI_BCast(characters_in, total_string_length, MPI_CHARACTER, 0, MPI_COMM_WORLD, ioError);
+          
+          offset = 1
+          do i = 1, header_in(HEADER_STRING_COUNT), 1
+              strings_in(i) = ' '
+              strings_in(i)  = characters_in(offset : (offset + string_sizes_in(i)))
+              strings_in(i)((string_sizes_in(i) + 1):(string_sizes_in(i) + 1)) = ' ' 
+              offset = offset + string_sizes_in(i) + 1
+              !print*, 'fortran: strings_in(i) ', i, strings_in(i) , ' of length ', string_sizes_in(i), &
+              !' actually of size ', len_trim(strings_in(i))
+          end do
+
         end if
         
         header_out = 0
@@ -922,20 +1032,33 @@ RUN_LOOP_SOCKETS_MPI_STRING = """
           end if
    
           if (header_out(HEADER_STRING_COUNT) .gt. 0) then
-      
+            offset = 1
             do i = 1, header_out(HEADER_STRING_COUNT),1
+                
               string_sizes_out(i) = len_trim(strings_out(i))
-            
-              !print*, 'fortran: sending strings, strings_out(i) ', i, strings_out(i) , ' of length ', string_sizes_out(i), &
-              !'actually of size ', len_trim(strings_out(i))
+                
+                !print*, 'fortran: sending strings, strings_out(i) ', i, strings_out(i) , ' of length ', string_sizes_out(i), &
+                !' actually of size ', len_trim(strings_out(i))
+                
+              characters_out(offset:offset+string_sizes_out(i)) = strings_out(i)
+              offset = offset + string_sizes_out(i) + 1
+              characters_out(offset-1:offset-1) = char(0)
             end do
-        
+  
+          total_string_length=offset-1
+
+          if(total_string_length.GT.1000000) then
+            print*, "fortran_Worker reports too large string message"
+            stop
+          endif
+
+          do i=1, total_string_length
+            c_characters_out(i)=characters_out(i:i)
+          enddo  
+  
             call send_integers(c_loc(string_sizes_out), header_out(HEADER_STRING_COUNT))
-          
-            do i = 1, header_out(HEADER_STRING_COUNT),1
-              call send_string(c_loc(strings_out(i)), string_sizes_out(i))
-            end do
-          end if
+            call send_string(c_loc(c_characters_out), offset-1 )
+         end if
         end if
       end do
     
@@ -1363,7 +1486,7 @@ class GenerateAFortranSourcecodeStringFromASpecificationClass(GenerateASourcecod
         self._result = self.out.string
 
     def output_mpi_include(self):
-        self.out.n() + "INCLUDE 'mpif.h'"
+        self.out.n() + "USE mpi"
         
     def output_modules(self):
         self.out.n()

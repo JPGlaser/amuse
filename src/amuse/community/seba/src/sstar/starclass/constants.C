@@ -85,17 +85,29 @@ real stellar_evolution_constants::super_nova_kick() {
   //    They prever a Maxwellian with a velocity dispersion of
   //    270 km/s.
   
+  //    Hobbs, Lorimer, Lyne & Kramer, 2005, 360, 974 - maxwellian with mean of 265
+  //    Arzoumanian et al. 2002, 568, 289 - combination of two maxwellians (mean 90 & 500)
+  // 	Verbunt, Igoshev & Cator, 2017, 608, 57 - combination of two maxwellians (mean 75 & 316)
+  
+  
   // selected kick distribution imparted to a newly formed neutron star
   // in a supernova. 
+PRC(pk);
   PRL(v_disp);
     switch(pk) {
     case no_velocity_kick:              return 0;
              break;                                
 	case Maxwellian_velocity_kick:      return random_maxwellian_velocity(v_disp);
              break;
-    case internally_decided_velocity_kick:
 	case Paczynski_velocity_kick:       return random_paczynski_velocity(v_disp);
              break;
+    case Hobbs_velocity_kick:      return random_hobbs_velocity();
+            break;
+	case Arzoumanian_velocity_kick:      return random_arzoumanian_velocity();
+            break;
+    case internally_decided_velocity_kick:		    
+	case Verbunt_velocity_kick:      return random_verbunt_velocity();
+            break;
 	case delta_function_velocity_kick:  return v_disp;
              break;
     default:
@@ -176,7 +188,7 @@ real stellar_evolution_constants::parameters(pulsar_initial_conditions pp) {
              break;                               
         case kanonical_neutron_star_mass:        return 1.34;   // [msun]
              break;                                
-	case maximum_neutron_star_mass:          return 1.8;    // [Msun]
+	case maximum_neutron_star_mass:          return 2.1;    // [Msun] //Updated Andrei Igoshev, 2020, see e.g. Cromartie et al. 2019 (NA 4, 72)
              break;                                
 	case minimum_neutron_star_mass:          return 0.0925; // [Msun]
              break;                              // Newtonian polytrope 
@@ -213,8 +225,7 @@ real stellar_evolution_constants::parameters(stellar_mass_limits pm) {
              break;                                
 	case helium2neutron_star:                return 2.2;
              break;                                
-        case COcore2black_hole:                  return 3; // was 10
-                                                      // (SPZ+GN: 27 Jul 2000)
+        case COcore2black_hole:                  return 5; // was 10
              break;                                
 	case super_giant2neutron_star:           return 8;
              break;                                

@@ -19,22 +19,22 @@ class EVtwinInterface(CodeInterface, LiteratureReferencesMixIn, StellarEvolution
     The work-around for the helium flash is not yet implemented in the AMUSE
     interface to evtwin. Currently only solar metallicity.
 
-        .. [#] ** Eggleton, P.P. 1971, MNRAS, 151, 351: "The evolution of low mass stars"
-        .. [#] ** Glebbeek, Pols & Hurley, 2008 A&A (for enhancements to the solver)
-        .. [#] Eggleton, P.P. 1972, MNRAS, 156, 361: "Composition changes during stellar evolution"
-        .. [#] Eggleton, P.P. 1973, MNRAS, 163, 279: "A numerical treatment of double shell source stars"
+        .. [#] ** Eggleton, P.P. 1971, MNRAS, 151, 351: "The evolution of low mass stars" [1971MNRAS.151..351E]
+        .. [#] ** Glebbeek, Pols & Hurley, 2008 A&A (for enhancements to the solver) [2008A&A...488.1007G]
+        .. [#] Eggleton, P.P. 1972, MNRAS, 156, 361: "Composition changes during stellar evolution" [1972MNRAS.156..361E]
+        .. [#] Eggleton, P.P. 1973, MNRAS, 163, 279: "A numerical treatment of double shell source stars" [1973MNRAS.163..279E]
         .. [#] Eggleton, P.P., Faulkner, J., & Flannery, B.P. 1973, A&A, 23, 325:
-        .. [#] ... "An Approximate Equation of State for Stellar Material"
+        .. [#] ... "An Approximate Equation of State for Stellar Material" [1973A&A....23..325E]
         .. [#] Han, Z., Podsiadlowski, P., & Eggleton, P.P. 1994, MNRAS, 270, 121:
-        .. [#] ... "A Possible Criterion for Envelope Ejection in Asymptotic Giant Branch or First Giant Branch Stars"
+        .. [#] ... "A Possible Criterion for Envelope Ejection in Asymptotic Giant Branch or First Giant Branch Stars" [1994MNRAS.270..121H]
         .. [#] Pols, O.R., Tout, C.A., Eggleton, P.P., & Han, Z. 1995, MNRAS, 274, 964:
-        .. [#] ... "Approximate input physics for stellar modelling"
-        .. [#] Eggleton, P.P. 2001, Evolution of Binary and Multiple Star Systems, 229, 157: "The Braking of Wind"
+        .. [#] ... "Approximate input physics for stellar modelling" [1995MNRAS.274..964P]
+        .. [#] Eggleton, P.P. 2001, Evolution of Binary and Multiple Star Systems, 229, 157: "The Braking of Wind" [2001ASPC..229..157E]
         .. [#] Nelson, C.A., & Eggleton, P.P. 2001, ApJ, 552, 664:
-        .. [#] ... "A Complete Survey of Case A Binary Evolution with Comparison to Observed Algol-type Systems"
-        .. [#] Eggleton, P.P., & Kiseleva-Eggleton, L. 2002, ApJ, 575, 461: "The Evolution of Cool Algols"
-        .. [#] Stancliffe, Glebbeek, Izzard & Pols, 2007 A&A (for thermohaline mixing)
-        .. [#] Eldridge & Tout, 2004 MNRAS 348 (for the OPAL 1996 opacity tables)
+        .. [#] ... "A Complete Survey of Case A Binary Evolution with Comparison to Observed Algol-type Systems" [2001ApJ...552..664N]
+        .. [#] Eggleton, P.P., & Kiseleva-Eggleton, L. 2002, ApJ, 575, 461: "The Evolution of Cool Algols" [2002ApJ...575..461E]
+        .. [#] Stancliffe, Glebbeek, Izzard & Pols, 2007 A&A (for thermohaline mixing) [2007A&A...464L..57S]]
+        .. [#] Eldridge & Tout, 2004 MNRAS 348 (for the OPAL 1996 opacity tables) [2004MNRAS.348..201E]
     """
     use_modules = ['twinlib', 'import']
 
@@ -635,8 +635,8 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
         InCodeComponentImplementation.__init__(self, EVtwinInterface(**options), **options)
         self.model_time = 0.0 | units.yr
 
-    def define_parameters(self, object):
-        object.add_boolean_parameter(
+    def define_parameters(self, handler):
+        handler.add_boolean_parameter(
             "get_verbosity",
             "set_verbosity",
             "verbosity",
@@ -644,7 +644,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = False
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_maximum_number_of_stars",
             "set_maximum_number_of_stars",
             "maximum_number_of_stars",
@@ -652,7 +652,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 10
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_metallicity",
             "set_metallicity",
             "metallicity",
@@ -660,7 +660,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 0.02
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             None,
             "set_ev_path",
             "path_to_data",
@@ -668,7 +668,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = self.data_directory
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_max_age_stop_condition",
             "set_max_age_stop_condition",
             "max_age_stop_condition",
@@ -676,7 +676,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0e12 | units.yr
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_min_timestep_stop_condition",
             "set_min_timestep_stop_condition",
             "min_timestep_stop_condition",
@@ -684,7 +684,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0e6 | units.s
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_number_of_ionization_elements",
             "set_number_of_ionization_elements",
             "number_of_ionization_elements",
@@ -692,7 +692,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 2
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_convective_overshoot_parameter",
             "set_convective_overshoot_parameter",
             "convective_overshoot_parameter",
@@ -700,7 +700,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 0.12
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_mixing_length_ratio",
             "set_mixing_length_ratio",
             "mixing_length_ratio",
@@ -708,7 +708,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 2.0
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_semi_convection_efficiency",
             "set_semi_convection_efficiency",
             "semi_convection_efficiency",
@@ -716,7 +716,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 0.04
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_thermohaline_efficiency",
             "set_thermohaline_efficiency",
             "thermohaline_efficiency",
@@ -724,7 +724,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_AGB_wind_setting",
             "set_AGB_wind_setting",
             "AGB_wind_setting",
@@ -732,7 +732,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_RGB_wind_setting",
             "set_RGB_wind_setting",
             "RGB_wind_setting",
@@ -740,7 +740,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0
         )
 
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_Ostar_wind_setting",
             "set_Ostar_wind_setting",
             "OB_wind_setting",
@@ -748,7 +748,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0
         )
         
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_import_model_entropy_accuracy",
             "set_import_model_entropy_accuracy",
             "import_model_entropy_accuracy", 
@@ -756,7 +756,7 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 1.0e-4
         )
         
-        object.add_method_parameter(
+        handler.add_method_parameter(
             "get_import_model_entropy_force",
             "set_import_model_entropy_force",
             "import_model_entropy_force", 
@@ -766,74 +766,74 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
             default_value = 20.0
         )
     
-    def define_particle_sets(self, object):
-        object.define_set('particles', 'index_of_the_star')
-        object.set_new('particles', 'new_particle_method')
-        object.set_delete('particles', 'delete_star')
+    def define_particle_sets(self, handler):
+        handler.define_set('particles', 'index_of_the_star')
+        handler.set_new('particles', 'new_particle_method')
+        handler.set_delete('particles', 'delete_star')
 
-        object.add_getter('particles', 'get_radius', names = ('radius',))
-        object.add_getter('particles', 'get_stellar_type', names = ('stellar_type',))
-        object.add_getter('particles', 'get_mass', names = ('mass',))
-        object.add_getter('particles', 'get_age', names = ('age',))
-        object.add_getter('particles', 'get_time_step', names = ('time_step',))
-        object.add_getter('particles', 'get_spin', names = ('spin',))
-        object.add_getter('particles', 'get_luminosity', names = ('luminosity',))
-        object.add_getter('particles', 'get_temperature', names = ('temperature',))
-        object.add_getter('particles', 'get_manual_mass_transfer_rate', names = ('mass_transfer_rate',))
-        object.add_setter('particles', 'set_manual_mass_transfer_rate', names = ('mass_transfer_rate',))
+        handler.add_getter('particles', 'get_radius', names = ('radius',))
+        handler.add_getter('particles', 'get_stellar_type', names = ('stellar_type',))
+        handler.add_getter('particles', 'get_mass', names = ('mass',))
+        handler.add_getter('particles', 'get_age', names = ('age',))
+        handler.add_getter('particles', 'get_time_step', names = ('time_step',))
+        handler.add_getter('particles', 'get_spin', names = ('spin',))
+        handler.add_getter('particles', 'get_luminosity', names = ('luminosity',))
+        handler.add_getter('particles', 'get_temperature', names = ('temperature',))
+        handler.add_getter('particles', 'get_manual_mass_transfer_rate', names = ('mass_transfer_rate',))
+        handler.add_setter('particles', 'set_manual_mass_transfer_rate', names = ('mass_transfer_rate',))
 
-        object.add_method('particles', 'evolve_one_step')
-        object.add_method('particles', 'evolve_for')
-        InternalStellarStructure.define_particle_sets(self, object, set_name = 'particles')
-        object.add_method('particles', 'get_stellar_model', 'get_internal_structure')
-        object.add_method('particles', 'write_star_to_file')
+        handler.add_method('particles', 'evolve_one_step')
+        handler.add_method('particles', 'evolve_for')
+        InternalStellarStructure.define_particle_sets(self, handler, set_name = 'particles')
+        handler.add_method('particles', 'get_stellar_model', 'get_internal_structure')
+        handler.add_method('particles', 'write_star_to_file')
     
-    def define_state(self, object):
-        StellarEvolution.define_state(self, object)
-        object.add_method('EDIT', 'new_particle_method')
-        object.add_method('UPDATE', 'new_particle_method')
-        object.add_transition('RUN', 'UPDATE', 'new_particle_method', False)
+    def define_state(self, handler):
+        StellarEvolution.define_state(self, handler)
+        handler.add_method('EDIT', 'new_particle_method')
+        handler.add_method('UPDATE', 'new_particle_method')
+        handler.add_transition('RUN', 'UPDATE', 'new_particle_method', False)
 
-    def define_errorcodes(self, object):
-        object.add_errorcode(5, 'Age greater than maximum age limit.')
-        object.add_errorcode(2, 'BACKUP -- tstep reduced below limit; quit')
-        InternalStellarStructure.define_errorcodes(self, object)
+    def define_errorcodes(self, handler):
+        handler.add_errorcode(5, 'Age greater than maximum age limit.')
+        handler.add_errorcode(2, 'BACKUP -- tstep reduced below limit; quit')
+        InternalStellarStructure.define_errorcodes(self, handler)
 
-    def define_methods(self, object):
-        InternalStellarStructure.define_methods(self, object)
-        StellarEvolution.define_methods(self, object)
-        object.add_method(
+    def define_methods(self, handler):
+        InternalStellarStructure.define_methods(self, handler)
+        StellarEvolution.define_methods(self, handler)
+        handler.add_method(
             "new_particle_method",
-            (units.MSun, object.NO_UNIT, object.NO_UNIT, object.NO_UNIT, units.yr),
-            (object.INDEX, object.ERROR_CODE)
+            (units.MSun, handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT, units.yr),
+            (handler.INDEX, handler.ERROR_CODE)
         )
-        object.add_method(
+        handler.add_method(
             "get_mass_transfer_rate",
-            (object.INDEX,),
-            (units.MSun/units.yr, object.ERROR_CODE,)
+            (handler.INDEX,),
+            (units.MSun/units.yr, handler.ERROR_CODE,)
         )
-        object.add_method(
+        handler.add_method(
             "get_wind_mass_loss_rate",
-            (object.INDEX,),
-            (units.MSun/units.yr, object.ERROR_CODE,)
+            (handler.INDEX,),
+            (units.MSun/units.yr, handler.ERROR_CODE,)
         )
-        object.add_method(
+        handler.add_method(
             "get_spin",
-            (object.INDEX,),
-            (units.day, object.ERROR_CODE,)
+            (handler.INDEX,),
+            (units.day, handler.ERROR_CODE,)
         )
-        object.add_method(
+        handler.add_method(
             "finalize_stellar_model",
             (units.yr,),
-            (object.INDEX, object.ERROR_CODE,)
+            (handler.INDEX, handler.ERROR_CODE,)
         )
-        object.add_method(
+        handler.add_method(
             "get_stellar_model_element",
-            (object.INDEX, object.INDEX,),
+            (handler.INDEX, handler.INDEX,),
             (units.MSun, units.MSun, units.RSun, units.g / units.cm**3, units.barye,
-                object.NO_UNIT, units.K, units.LSun, units.amu,
-                object.NO_UNIT, object.NO_UNIT, object.NO_UNIT, object.NO_UNIT, object.NO_UNIT,
-                object.NO_UNIT, object.NO_UNIT, object.NO_UNIT, object.NO_UNIT, object.ERROR_CODE)
+                handler.NO_UNIT, units.K, units.LSun, units.amu,
+                handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT,
+                handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT, handler.NO_UNIT, handler.ERROR_CODE)
         )
 
     def initialize_module_with_default_parameters(self):
@@ -876,3 +876,6 @@ class EVtwin(StellarEvolution, InternalStellarStructure):
         tmp_star.age_tag = current_age
         return self.particles.add_particle(tmp_star)
 
+
+
+Evtwin = EVtwin

@@ -5,7 +5,7 @@ import os
 import random
 import sys
 import unittest
-from time import clock
+from time import process_time as clock
 
 from amuse.community.ph4.interface import ph4 as grav
 from amuse.community.smalln.interface import SmallN
@@ -48,44 +48,44 @@ def print_log(pre, time, gravity, E0 = 0.0 | nbody_system.energy, cpu0 = 0.0):
     cmx,cmy,cmz = dcen
     lagr,mf = pa.LagrangianRadii(gravity.particles, cm=dcen)  # no units!
 
-    print ''
-    print pre+"time=", time.number
-    print pre+"CPU=", cpu - cpu0
-    print pre+"Ntot=", N
-    print pre+"mass=", M.number
-    print pre+"Etot=", Etot.number
-    print pre+"Etop=", Etop.number
-    print pre+"Eext=", Eext.number
-    print pre+"Eint=", Eint.number
-    print pre+"Eerr=", Eerr.number
-    print pre+"Edel=", Edel.number
-    print pre+"Ecor=", Ecor.number
-    print pre+"dE/E=", Ecor/E0 - 1
-    print pre+"Rvir=", Rvir.number
-    print pre+"Qvir=", Q
+    print('')
+    print(pre+"time=", time.number)
+    print(pre+"CPU=", cpu - cpu0)
+    print(pre+"Ntot=", N)
+    print(pre+"mass=", M.number)
+    print(pre+"Etot=", Etot.number)
+    print(pre+"Etop=", Etop.number)
+    print(pre+"Eext=", Eext.number)
+    print(pre+"Eint=", Eint.number)
+    print(pre+"Eerr=", Eerr.number)
+    print(pre+"Edel=", Edel.number)
+    print(pre+"Ecor=", Ecor.number)
+    print(pre+"dE/E=", Ecor/E0 - 1)
+    print(pre+"Rvir=", Rvir.number)
+    print(pre+"Qvir=", Q)
     cmx,cmy,cmz = com
-    print pre+"cmpos[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number)
+    print(pre+"cmpos[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number))
     cmx,cmy,cmz = comv
-    print pre+"cmvel[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number)
+    print(pre+"cmvel[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number))
     cmx,cmy,cmz = dcen
-    print pre+"dcpos[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number)
-    print pre+"Rcore=", rcore.number
-    print pre+"Mcore=", (rhocore*rcore**3).number	# fake...
-    print pre+"Mlagr[9]=",
-    for m in mf: print "%.4f" % (m),
-    print ''
-    print pre+"Rlagr[9]=",
-    for r in lagr.number: print "%.8f" % (r),
-    print ''
+    print(pre+"dcpos[3]= %.8f %.8f %.8f" % (cmx.number, cmy.number, cmz.number))
+    print(pre+"Rcore=", rcore.number)
+    print(pre+"Mcore=", (rhocore*rcore**3).number)	# fake...
+    print(pre+"Mlagr[9]=", end=' ')
+    for m in mf: print("%.4f" % (m), end=' ')
+    print('')
+    print(pre+"Rlagr[9]=", end=' ')
+    for r in lagr.number: print("%.8f" % (r), end=' ')
+    print('')
     kT = T/N
     Nmul,Nbin,Emul = gravity.print_multiples2(pre, kT, dcen)
-    print pre+"Nmul=", Nmul
-    print pre+"Nbin=", Nbin
-    print pre+"Emul= %.5f" % (Emul.number)
-    print pre+"Emul2= %.5f" % (Emul2.number)
-    print pre+"Emul/kT= %.5f" % (Emul/kT)
-    print pre+"Emul/E= %.5f" % (Emul/Etot)
-    print ''
+    print(pre+"Nmul=", Nmul)
+    print(pre+"Nbin=", Nbin)
+    print(pre+"Emul= %.5f" % (Emul.number))
+    print(pre+"Emul2= %.5f" % (Emul2.number))
+    print(pre+"Emul/kT= %.5f" % (Emul.number/kT.number))
+    print(pre+"Emul/E= %.5f" % (Emul.number/Etot.number))
+    print('')
 
     sys.stdout.flush()
     return Ecor,cpu
@@ -126,21 +126,22 @@ def run_ph4(infile = None, outfile = None,
             salpeter = 0,
             accuracy_parameter = 0.1,
             softening_length = 0.0 | nbody_system.length,
-            manage_encounters = 1, random_seed = 1234):
+            manage_encounters = 1, random_seed = 1234,
+            debug_level = 1):
 
     if random_seed <= 0:
         numpy.random.seed()
         random_seed = numpy.random.randint(1, pow(2,31)-1)
     numpy.random.seed(random_seed)
-    print "random seed =", random_seed
+    print("random seed =", random_seed)
 
-    if infile != None: print "input file =", infile
-    print "end_time =", end_time.number
-    print "delta_t =", delta_t.number
-    print "n_workers =", n_workers
-    print "use_gpu =", use_gpu
-    print "manage_encounters =", manage_encounters
-    print "\ninitializing the gravity module"
+    if infile != None: print("input file =", infile)
+    print("end_time =", end_time)
+    print("delta_t =", delta_t)
+    print("n_workers =", n_workers)
+    print("use_gpu =", use_gpu)
+    print("manage_encounters =", manage_encounters)
+    print("\ninitializing the gravity module")
     sys.stdout.flush()
 
     init_smalln()
@@ -169,25 +170,25 @@ def run_ph4(infile = None, outfile = None,
 
     if infile == None:
 
-        print "making a Plummer model"
+        print("making a Plummer model")
         stars = new_plummer_model(number_of_stars)
 
         id = numpy.arange(number_of_stars)
         stars.id = id+1
 
-        print "setting particle masses and radii"
+        print("setting particle masses and radii")
         if salpeter == 0:
-            print 'equal masses'
+            print('equal masses')
             total_mass = 1.0 | nbody_system.mass
             scaled_mass = total_mass / number_of_stars
         else:
-            print 'salpeter mass function'
+            print('salpeter mass function')
             scaled_mass = new_salpeter_mass_distribution_nbody(number_of_stars) 
         stars.mass = scaled_mass
 
-        print "centering stars"
+        print("centering stars")
         stars.move_to_center()
-        print "scaling stars to virial equilibrium"
+        print("scaling stars to virial equilibrium")
         stars.scale_to_standard(smoothing_length_squared
                                     = gravity.parameters.epsilon_squared)
 
@@ -196,7 +197,7 @@ def run_ph4(infile = None, outfile = None,
         # Read the input data.  Units are dynamical (sorry).
         # Format:  id  mass  pos[3]  vel[3]
 
-        print "reading file", infile
+        print("reading file", infile)
 
         id = []
         mass = []
@@ -249,23 +250,31 @@ def run_ph4(infile = None, outfile = None,
         Emax = 20*kT
         ecc = 0.1
 
-        id_count = number_of_stars
         nbin = 0
+        companion_base_id = 100*(number_of_stars//10)
+
         for i in range(0, number_of_stars,
-                       number_of_stars/number_of_binaries):
+                       number_of_stars//number_of_binaries):
 
             # Star i is CM, becomes component, add other star at end.
 
             nbin += 1
 
             mass = stars[i].mass
-            new_mass = numpy.random.uniform()*mass	# uniform q?
+            new_mass = numpy.random.uniform()*mass	# uniform q
             mbin = mass + new_mass
             fac = new_mass/mbin
             E = Emin + numpy.random.uniform()*(Emax-Emin)
             a = 0.5*nbody_system.G*mass*new_mass/E
 
             kep.initialize_from_elements(mbin, a, ecc)
+
+            # Binaries should be approaching in order to be picked up
+            # by multiples.
+            
+            kep.advance_to_apastron()
+            kep.advance_to_radius(a)
+
             dr = quantities.AdaptingVectorQuantity()
             dr.extend(kep.get_separation_vector())
             dv = quantities.AdaptingVectorQuantity()
@@ -275,12 +284,12 @@ def run_ph4(infile = None, outfile = None,
             newstar.mass = new_mass
             newstar.position = stars[i].position + (1-fac)*dr
             newstar.velocity = stars[i].velocity + (1-fac)*dv
-            # stars[i].mass = mass
+
             stars[i].position = stars[i].position - fac*dr
             stars[i].velocity = stars[i].velocity - fac*dv
 
-            id_count += 1
-            newstar.id = id_count
+            newstar.id = companion_base_id + stars[i].id
+
             stars.add_particles(newstar)
             added_mass += new_mass
 
@@ -288,7 +297,7 @@ def run_ph4(infile = None, outfile = None,
 
         kep.stop()
 
-        print 'created', nbin, 'binaries'
+        print('created', nbin, 'binaries')
         sys.stdout.flush()
 
         stars.mass = stars.mass * total_mass/(total_mass+added_mass)
@@ -308,7 +317,7 @@ def run_ph4(infile = None, outfile = None,
     # Taking r_i = m_i / 2<v^2> = m_i in virial equilibrium means
     # that, approximately, "contact" means a 90-degree deflection (r_1
     # + r_2 = b_90).  A more conservative choice with r_i less than
-    # this value will isolates encounters better, but also place more
+    # this value will isolate encounters better, but also place more
     # load on the large-N dynamical module.
 
     stars.radius = stars.mass.number | nbody_system.length
@@ -316,7 +325,7 @@ def run_ph4(infile = None, outfile = None,
     time = 0.0 | nbody_system.time
     # print "IDs:", stars.id.number
 
-    print "recentering stars"
+    print("recentering stars")
     stars.move_to_center()
     sys.stdout.flush()
 
@@ -330,24 +339,22 @@ def run_ph4(infile = None, outfile = None,
 			| nbody_system.length**2
     else:
         eps2 = softening_length*softening_length
-    print 'softening length =', eps2.sqrt()
+    print('softening length =', eps2.sqrt())
 
     gravity.parameters.timestep_parameter = accuracy_parameter
     gravity.parameters.epsilon_squared = eps2
     gravity.parameters.use_gpu = use_gpu
     # gravity.parameters.manage_encounters = manage_encounters
 
-    print ''
-    print "adding particles"
+    print('')
+    print("adding particles")
     # print stars
     sys.stdout.flush()
     gravity.particles.add_particles(stars)
     gravity.commit_particles()
 
-    print ''
-    print "number_of_stars =", number_of_stars
-    print "evolving to time =", end_time.number, \
-          "in steps of", delta_t.number
+    print('')
+    print("number_of_stars =", number_of_stars)
     sys.stdout.flush()
 
     # Channel to copy values from the code to the set in memory.
@@ -359,7 +366,7 @@ def run_ph4(infile = None, outfile = None,
     # Debugging: prevent the multiples code from being called.
     if 0:
         stopping_condition.disable()
-        print 'stopping condition disabled'
+        print('stopping condition disabled')
         sys.stdout.flush()
 
     # -----------------------------------------------------------------
@@ -370,31 +377,40 @@ def run_ph4(infile = None, outfile = None,
     multiples_code = multiples.Multiples(gravity, new_smalln, kep)
 
     multiples_code.neighbor_perturbation_limit = 0.1
-    #multiples_code.neighbor_distance_factor = 1.0
-    #multiples_code.neighbor_veto = False
     #multiples_code.neighbor_distance_factor = 2.0
     multiples_code.neighbor_veto = True
+    multiples_code.global_debug = debug_level
 
-    print ''
-    print 'multiples_code.initial_scale_factor =', \
-        multiples_code.initial_scale_factor
-    print 'multiples_code.neighbor_perturbation_limit =', \
-        multiples_code.neighbor_perturbation_limit
-    print 'multiples_code.neighbor_veto =', \
-        multiples_code.neighbor_veto
-    print 'multiples_code.final_scale_factor =', \
-        multiples_code.final_scale_factor
-    print 'multiples_code.initial_scatter_factor =', \
-        multiples_code.initial_scatter_factor
-    print 'multiples_code.final_scatter_factor =', \
-        multiples_code.final_scatter_factor
-    print 'multiples_code.retain_binary_apocenter =', \
-        multiples_code.retain_binary_apocenter
-    print 'multiples_code.wide_perturbation_limit =', \
-        multiples_code.wide_perturbation_limit
+    print('')
+    print('multiples_code.initial_scale_factor =', \
+        multiples_code.initial_scale_factor)
+    print('multiples_code.neighbor_perturbation_limit =', \
+        multiples_code.neighbor_perturbation_limit)
+    print('multiples_code.neighbor_veto =', \
+        multiples_code.neighbor_veto)
+    print('multiples_code.final_scale_factor =', \
+        multiples_code.final_scale_factor)
+    print('multiples_code.initial_scatter_factor =', \
+        multiples_code.initial_scatter_factor)
+    print('multiples_code.final_scatter_factor =', \
+        multiples_code.final_scatter_factor)
+    print('multiples_code.retain_binary_apocenter =', \
+        multiples_code.retain_binary_apocenter)
+    print('multiples_code.wide_perturbation_limit =', \
+        multiples_code.wide_perturbation_limit)
 
+    # Find initial binaries.
+    
+    gravity.parameters.zero_step_mode = 1
+    print('\nidentifying initial binaries')
+    multiples_code.evolve_model(time)
+    gravity.parameters.zero_step_mode = 0
+    
     pre = "%%% "
     E0,cpu0 = print_log(pre, time, multiples_code)
+
+    print("evolving to time =", end_time, \
+            "in steps of", delta_t)
 
     while time < end_time:
 
@@ -433,9 +449,9 @@ def run_ph4(infile = None, outfile = None,
         #--------------------------------------------------
 
         f.close()
-        print 'wrote file', outfile
+        print('wrote file', outfile)
 
-    print ''
+    print('')
     gravity.stop()
 
 def write_star(s, f):
@@ -446,29 +462,30 @@ def write_star(s, f):
 
 if __name__ == '__main__':
 
-    print '\ncommand line:',
-    for a in sys.argv: print a,
-    print '\n'
+    print('\ncommand line:', end=' ')
+    for a in sys.argv: print(a, end=' ')
+    print('\n')
 
     infile = None
     outfile = None
     N = 100
-    Nbin = 0
-    t_end = 5.0 | nbody_system.time
+    Nbin = 10
+    t_end = 10.0 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
     n_workers = 2
-    use_gpu = 1
-    gpu_worker = 1
+    use_gpu = 0
+    gpu_worker = 0
     salpeter = 0
     accuracy_parameter = 0.1
     softening_length = 0  | nbody_system.length
-    random_seed = -1
+    random_seed = 42
     manage_encounters = 1
+    debug_level = 1
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:b:c:d:e:f:-F:gGn:s:St:w:")
-    except getopt.GetoptError, err:
-        print str(err)
+        opts, args = getopt.getopt(sys.argv[1:], "a:b:c:d:D:e:f:-F:gGn:s:St:w:")
+    except getopt.GetoptError as err:
+        print(str(err))
         sys.exit(1)
 
     for o, a in opts:
@@ -480,6 +497,8 @@ if __name__ == '__main__':
             manage_encounters = int(a)
         elif o == "-d":
             delta_t = float(a) | nbody_system.time 
+        elif o == "-D":
+            debug_level = int(a)
         elif o == "-e":
             softening_length = float(a) | nbody_system.length
         elif o == "-f":
@@ -502,11 +521,11 @@ if __name__ == '__main__':
         elif o == "-w":
             n_workers = int(a)
         else:
-            print "unexpected argument", o
+            print("unexpected argument", o)
 
     assert is_mpd_running()
     run_ph4(infile, outfile,
             N, Nbin, t_end, delta_t, n_workers,
             use_gpu, gpu_worker,
             salpeter, accuracy_parameter, softening_length,
-            manage_encounters, random_seed)
+            manage_encounters, random_seed, debug_level)

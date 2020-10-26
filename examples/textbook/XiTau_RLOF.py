@@ -1,5 +1,5 @@
 """
-   example code for bridging a gravity solver with a hydrodynamics solver
+   example code bridging a gravity solver with a hydrodynamics solver
 """
 import numpy
 from amuse.lab import *
@@ -20,7 +20,7 @@ def evolve_binary_in_common_envelope(stars, envelope, t_end):
 
     hydro = Fi(converter, redirection="none")
     tdyn = numpy.sqrt((0.05*R)**3/(constants.G*stars.mass.sum()))
-    print "tdyn=", tdyn
+    print("tdyn=", tdyn)
     hydro.parameters.timestep = tdyn
     hydro.parameters.epsilon_squared = (1|units.RSun)**2
     hydro.gas_particles.add_particles(envelope)
@@ -31,7 +31,8 @@ def evolve_binary_in_common_envelope(stars, envelope, t_end):
 
     model_time = 0 | units.Myr
     filename = "XiTau_Hydro.amuse"
-    write_set_to_file(stars.savepoint(model_time), filename, 'amuse', append_to_file=False)
+    write_set_to_file(stars.savepoint(model_time), filename, 'amuse',
+                      append_to_file=False)
     write_set_to_file(envelope, filename, 'amuse')
 
     gravhydro = bridge.Bridge(use_threading=False)
@@ -41,7 +42,7 @@ def evolve_binary_in_common_envelope(stars, envelope, t_end):
 
     while model_time < t_end:
         model_time += dt
-        print "Time=", model_time.in_(units.day)
+        print("Time=", model_time.in_(units.day))
         gravhydro.evolve_model(model_time)
 
         channel_from_gravity.copy()
@@ -67,7 +68,8 @@ if __name__ in ('__main__', '__plot__'):
     m1 = 3.2|units.MSun
     m2 = 3.1|units.MSun
     from amuse.ext.orbital_elements import new_binary_from_orbital_elements
-    inner_binary = new_binary_from_orbital_elements(m1, m2, a, e, G=constants.G)
+    inner_binary = new_binary_from_orbital_elements(m1, m2, a, e,
+                                                    G=constants.G)
 
     XiTau = read_set_from_file("Hydro_PrimaryStar_XiTau.amuse", "amuse")
     for ci in XiTau.history:
@@ -80,8 +82,9 @@ if __name__ in ('__main__', '__plot__'):
     eo = 0.15
     m12 = inner_binary.mass.sum()
     m3 = XiTau_core.mass + XiTau_envelope.mass.sum()
-    print "M3=", m3.in_(units.MSun)
-    outer_binary = new_binary_from_orbital_elements(m12, m3, ao, eo, G=constants.G)
+    print("M3=", m3.in_(units.MSun))
+    outer_binary = new_binary_from_orbital_elements(m12, m3, ao, eo,
+                                                    G=constants.G)
 
     inner_binary.position += outer_binary[0].position
     inner_binary.velocity += outer_binary[0].velocity
@@ -94,7 +97,7 @@ if __name__ in ('__main__', '__plot__'):
     triple.add_particles(inner_binary)
     triple.add_particle(outer_binary[1])
 
-    print triple
+    print(triple)
     
     evolve_binary_in_common_envelope(triple, XiTau_envelope, o.t_end)
 

@@ -262,7 +262,7 @@ class unit(object):
                     if not n2 == n1:
                         return False
                     found = True
-                    break;
+                    break
             if not found:
                 return False
         return True
@@ -279,11 +279,11 @@ class unit(object):
                 continue
             else:
                 if abs(n1 - n2) < eps:
-                    continue;
+                    continue
                 if abs(n2) > abs(n1):
-                    relativeError = abs((n1 - n2) * 1.0 / n2);
+                    relativeError = abs((n1 - n2) * 1.0 / n2)
                 else:
-                    relativeError = abs((n1 - n2) * 1.0 / n1);
+                    relativeError = abs((n1 - n2) * 1.0 / n1)
                 if relativeError <= eps:
                     continue
                 else:
@@ -335,9 +335,9 @@ class unit(object):
         from amuse.units import quantities
         if isinstance(unit, quantities.Quantity):
             raise exceptions.AmuseException("Cannot expres a unit in a quantity")
-        else:
-            factor = self.conversion_factor_from(unit)
-            return quantities.new_quantity(factor, unit)
+
+        factor = self.conversion_factor_from(unit)
+        return quantities.new_quantity(factor, unit)
             
     def value_in(self, unit):
         """
@@ -549,8 +549,7 @@ class no_system(object):
     def get(cls, name):
         return cls.ALL[name]
         
-class none_unit(unit):
-    __metaclass__ = MultitonMetaClass
+class none_unit(unit, metaclass=MultitonMetaClass):
     def __init__(self, name,  symbol):
         self.name = name
         self.symbol = symbol
@@ -610,7 +609,7 @@ class key_unit(none_unit):
     
     @property
     def dtype(self):
-        return 'uint64'
+        return numpy.dtype('uint64')
         
         
         
@@ -706,11 +705,11 @@ class string_unit(nonnumeric_unit):
         return '' if value is None else value
     
     def is_valid_value(self, value):
-        return value is None or isinstance(value, basestring)
+        return value is None or isinstance(value, str)
         
     @property
     def dtype(self):
-        return 'S256'
+        return numpy.dtype('S256')
 
 class enumeration_unit(nonnumeric_unit):
     DEFINED={}
@@ -763,8 +762,7 @@ class enumeration_unit(nonnumeric_unit):
         if possible_values is None:
             if names_for_values is None:
                 raise exceptions.AmuseException("Must provide a list of values and / or a list of names for each value")
-            else:
-                return range(len(names_for_values))
+            return list(range(len(names_for_values)))
         else:
             return list(possible_values)
             
@@ -780,8 +778,7 @@ class enumeration_unit(nonnumeric_unit):
         if names_for_values is None:
             if possible_values is None:
                 raise exceptions.AmuseException("Must provide a list of values and / or a list of names for each value")
-            else:
-                return [str(x) for x in possible_values]
+            return [str(x) for x in possible_values]
         else:
             return list(names_for_values)
             
@@ -807,7 +804,7 @@ class enumeration_unit(nonnumeric_unit):
             
     @property
     def dtype(self):
-        return 'int32'
+        return numpy.dtype('int32')
         
     @classmethod
     def get(cls, name):
@@ -867,15 +864,16 @@ class named_unit(unit):
     @late
     def base(self):
         return self.local_unit.base
+        
+    def is_none(self):
+        return self.local_unit.is_none()
 
-class derived_unit(unit):
+class derived_unit(unit, metaclass=MultitonMetaClass):
     """
     Abstract base class of derived units. New units
     can be derived from base_units. Each operation on
     a unit creates a new derived_unit.
     """
-    
-    __metaclass__ = MultitonMetaClass
     pass
     
 
@@ -975,8 +973,15 @@ class mul_unit(derived_unit):
     @late
     def base(self):
         return tuple(
-            filter(lambda x: x[0] != 0,
-            map(lambda x: (x[0] + x[1], x[2]),self.combine_bases(self.left_hand.base, self.right_hand.base))))
+            [
+                x
+                for x in [
+                    (x[0] + x[1], x[2])
+                    for x in self.combine_bases(self.left_hand.base, self.right_hand.base)
+                ]
+                if x[0] != 0
+            ]
+        )
     
     def get_parts_with_power(self):        
         lhs_parts = list(self.left_hand.get_parts_with_power())
@@ -1043,8 +1048,15 @@ class pow_unit(derived_unit):
     @late
     def base(self):
         return tuple(
-            filter(lambda x: x[0] != 0,
-            map(lambda x : (x[0] * self.power, x[1]), self.local_unit.base)))
+            [
+                x
+                for x in [
+                    (x[0] * self.power, x[1])
+                    for x in self.local_unit.base
+                ]
+                if x[0] != 0
+            ]
+        )
         
     @late
     def factor(self):
@@ -1100,9 +1112,15 @@ class div_unit(derived_unit):
     @late
     def base(self):
         return tuple(
-                    filter(lambda x: x[0] != 0,
-                    map(lambda x: (x[0] - x[1], x[2]),
-                        self.combine_bases(self.left_hand.base, self.right_hand.base))))
+            [
+                x
+                for x in [
+                    (x[0] - x[1], x[2])
+                    for x in self.combine_bases(self.left_hand.base, self.right_hand.base)
+                ]
+                if x[0] != 0
+            ]
+        )
     
     
     def get_parts_with_power(self):        
@@ -1162,6 +1180,7 @@ class UnitWithSpecificDtype(named_unit):
     def dtype(self):
         return self.specific_dtype
 
+@memoize
 def unit_with_specific_dtype(unit, dtype):
     if unit is None or dtype is None:
         return unit

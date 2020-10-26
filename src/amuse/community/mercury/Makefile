@@ -1,6 +1,8 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
 -include ${AMUSE_DIR}/config.mk
 
 MPIFC ?= openmpif90
@@ -8,7 +10,7 @@ MPIFC ?= openmpif90
 FC = $(MPIFC)
 SRC=src
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 CODE_LIBS=$(SRC)/libmercury.a
 
@@ -20,7 +22,9 @@ FFLAGS2= -I./src/
 
 CLASSNAME=MercuryInterface
 
-F77FLAGS = 
+#~ FFLAGS += -mcmodel=medium
+
+F77FLAGS +=
 ifneq (,$(findstring xlf, $(notdir $(FORTRAN))))
 F77FLAGS += -qfixed -qsuffix=f=for
 endif

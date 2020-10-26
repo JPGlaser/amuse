@@ -17,13 +17,18 @@ def plot_grid(grid, time= 0.0|units.day):
 
     halfway = len(grid.rho[...,0,0])/2 - 1
     rho = grid.rho[...,...,halfway].value_in(units.g/units.cm**3)
+    max_dens = rho.max()
 
     plot = figure.add_subplot(1,1,1)
-    cax = plot.imshow(rho, interpolation='nearest', origin = 'lower', extent=[-5, 5, -5, 5])
-    max_dens = rho.max()
+#    cax = plot.imshow(rho, interpolation='nearest', origin = 'lower', extent=[-5, 5, -5, 5])
+    cax = plot.imshow(rho, interpolation='bicubic', origin = 'lower', extent=[-5, 5, -5, 5], cmap="hot")
+    rmin = 0.0 
+    rmid = "%.1f" % (0.5*max_dens)
+    rmax = "%.1f" % (max_dens)
     cbar = figure.colorbar(cax, ticks=[1.e-5, 0.5*max_dens, max_dens], orientation='vertical', fraction=0.045)
-    cbar.ax.set_yticklabels(['Low', ' ', 'High'])  # horizontal colorbar
-    cbar.set_label('mid-plane density', rotation=270)
+    cbar.ax.set_yticklabels([rmin, ' ', rmax])  # horizontal colorbar
+    #cbar.ax.set_yticklabels(['Low', ' ', 'High'])  # horizontal colorbar
+    cbar.set_label('mid-plane density [$g/cm^3$]', rotation=270)
     pyplot.xlabel("x [R$_\odot$]")
     pyplot.ylabel("y [R$_\odot$]")
     t = int(time.value_in(units.s))
@@ -78,6 +83,32 @@ def make_e_map(sph,N=100,L=1):
     return rho
 
 def plot_sph(time, sph, gas, i=1, L=10):
+    max_dens = sph.rho.max()
+
+    x_label = "X [R$_\odot$]"
+    y_label = "Y [R$_\odot$]"
+    fig = single_frame(x_label, y_label, logx=False, logy=False, xsize=12, ysize=12)
+
+#    rho=make_map(sph,N=200,L=L)
+    rho_e=make_e_map(sph,N=200,L=L)
+    print("extrema:", rho_e.value_in(units.erg/units.RSun**3).min(), rho_e.value_in(units.erg/units.RSun**3).max())
+#    pyplot.imshow(numpy.log10(rho_e.value_in(units.erg/units.RSun**3)), extent=[-L/2,L/2,-L/2,L/2],vmin=23,vmax=40)
+    pyplot.imshow(numpy.log10(rho_e.value_in(units.erg/units.RSun**3)), extent=[-L/2,L/2,-L/2,L/2],vmin=23,vmax=40, interpolation='bicubic', origin = 'lower', cmap="hot")
+#    cax = plot.imshow(rho, interpolation='bicubic', origin = 'lower', extent=[-5, 5, -5, 5], cmap="hot")
+    cbar = figure.colorbar(cax, ticks=[1.e-8, 0.5*max_dens, max_dens], orientation='vertical', fraction=0.045)
+    rmin = 0.0 
+    rmid = "%.1f" % (0.5*max_dens)
+    rmax = "%.1f" % (max_dens)
+    cbar.ax.set_yticklabels([rmin, ' ', rmax])  # horizontal colorbar
+    cbar.set_label('mid-plane density [$g/cm^3$]', rotation=270)
+    pyplot.xlabel("x [R$_\odot$]")
+    pyplot.ylabel("y [R$_\odot$]")
+
+    t = int(0.5+sph.model_time.value_in(units.s))
+    filename = "supernova_sph_T"+str(t)+".pdf"
+    pyplot.savefig(filename)
+
+def XX_plot_sph(time, sph, gas, i=1, L=10):
     x_label = "x [R$_\odot$]"
     y_label = "y [R$_\odot$]"
     fig = single_frame(x_label, y_label, logx=False, logy=False, xsize=12, ysize=12)
@@ -86,7 +117,7 @@ def plot_sph(time, sph, gas, i=1, L=10):
     rho_e=make_e_map(sph,N=200,L=L)
 #    pyplot.hist(numpy.log10(rho_e.value_in(units.erg/units.RSun**3)))
 #    pyplot.show()
-    print "extrema:", rho_e.value_in(units.erg/units.RSun**3).min(), rho_e.value_in(units.erg/units.RSun**3).max()
+    print("extrema:", rho_e.value_in(units.erg/units.RSun**3).min(), rho_e.value_in(units.erg/units.RSun**3).max())
 #    pyplot.imshow(numpy.log10(1.e-8+rho.value_in(units.amu/units.cm**3)), extent=[-L/2,L/2,-L/2,L/2],vmin=1,vmax=5)
     pyplot.imshow(numpy.log10(rho_e.value_in(units.erg/units.RSun**3)), extent=[-L/2,L/2,-L/2,L/2],vmin=23,vmax=40)
 #    pyplot.imshow(numpy.log10(1.e-5+rho.value_in(units.amu/units.cm**3)), extent=[-L/2,L/2,-L/2,L/2],vmin=1,vmax=5)
@@ -95,7 +126,7 @@ def plot_sph(time, sph, gas, i=1, L=10):
     t = int(0.5+sph.model_time.value_in(units.s))
     filename = "supernova_sph_T"+str(t)+".pdf"
     pyplot.savefig(filename)
-
+    
     
 def X_plot_sph(particles, time= 0.0|units.day):
 
@@ -112,7 +143,7 @@ def X_plot_sph(particles, time= 0.0|units.day):
     min_dens = z.min()
     mid_dens = 0.5*(max_dens+min_dens)
     #    cbar = pyplot.colorbar()
-    print "dens=", min_dens, mid_dens, max_dens
+    print("dens=", min_dens, mid_dens, max_dens)
 
 #    cbar = figure.colorbar(cax, ticks=[min_dens, mid_dens, max_dens], orientation='vertical', fraction=0.045)
 
@@ -135,7 +166,7 @@ def setup_sph_code(sph_code, N, L, rho, u):
     plummer = new_plummer_gas_model(N, convert_nbody=converter)    
     plummer = plummer.select(lambda r: r.length()<0.5*L,["position"])
     N = len(plummer)
-    print "N=", len(plummer)
+    print("N=", len(plummer))
     plummer.mass = (rho * L**3) / N
     gas = Particles(N)
     gas.mass = 0.001*(rho * L**3) / N
@@ -172,7 +203,7 @@ def main(stellar_mass, stellar_radius, core_mass, core_radius, t_end, dt_diag, r
         converter = nbody_system.nbody_to_si(1|units.MSun, 1|units.RSun)
         hydro = Gadget2(converter, number_of_workers=4)
         from amuse.ext.grid_to_sph import convert_grid_to_SPH
-        particles = convert_grid_to_SPH(grid, number_of_sph_particles=10000)
+        particles = convert_grid_to_SPH(grid, number_of_sph_particles=100000)
         #hydro.particles.add_particles(particles)
         #channel = hydro.gas_particles.new_channel_to(particles)
         #hydro.evolve_model(20|units.s)
@@ -181,7 +212,7 @@ def main(stellar_mass, stellar_radius, core_mass, core_radius, t_end, dt_diag, r
         #R = 1|units.RSun
         #particles = particles.select(lambda x, y, z: x>R and y>R and z>R,["x", "y", "z"])
         #print particles
-        print "N=", len(particles)
+        print("N=", len(particles))
 
         run_sph_code(hydro, particles, t_end, dt_diag)
     
@@ -262,7 +293,7 @@ def run_grid_code(hydro, grid, t_end, dt_diag):
     channel = hydro.grid.new_channel_to(grid)
     dt = 0.2*t_end
     while hydro.model_time<t_end:
-        print "Time=", hydro.model_time.in_(units.s)
+        print("Time=", hydro.model_time.in_(units.s))
         hydro.evolve_model(hydro.model_time + dt)
         channel.copy()
         plot_grid(hydro.grid, hydro.model_time)
@@ -273,11 +304,11 @@ def run_sph_code(hydro, particles, t_end, dt):
     write_set_to_file(particles.savepoint(0|units.yr), "supernova_sph.amuse", "amuse", append_to_file=False)
 
     index = 1
-    plot_sph(0|units.yr, hydro, particles, index)
+#    plot_sph(0|units.yr, hydro, particles, index)
     channel = hydro.gas_particles.new_channel_to(particles)
     while hydro.model_time<t_end:
         index += 1
-        print "Time=", hydro.model_time.in_(units.s)
+        print("Time=", hydro.model_time.in_(units.s))
         hydro.evolve_model(hydro.model_time + dt)
         channel.copy_attributes(["x", "y", "z", "rho", "u"])
         #plot_sph(particles, hydro.model_time)
@@ -304,7 +335,7 @@ def new_option_parser():
                       dest="core_mass", type="float", default = 1.4|units.MSun,
                       help="Mass of the stellar core [%default]")
     result.add_option("-n", 
-                      dest="resolution", type="int", default = 100,
+                      dest="resolution", type="int", default = 300,
                       help="Resolution of the grid [%default]")
     result.add_option("-r", unit=units.RSun,
                       dest="core_radius", type="float", default = 0.1|units.RSun,

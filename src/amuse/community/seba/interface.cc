@@ -174,7 +174,9 @@ local int translate_stellar_type_to_int(stellar_type stp, const real mass) {
     case Disintegrated:
       return 15;
     case Proto_Star:
+      return 17;
     case Planet:
+      return 18;
     case Static_Star:
     case SPZDCH_Star:
     case NAS: 
@@ -375,12 +377,12 @@ int get_supernova_kick_velocity(double * v_disp){
     return 0;
 }
 
-int get_is_logging_of_evolve_enabled(int *value){
-    *value = is_logging_of_evolve_enabled ? 1 : 0;
+int get_is_logging_of_evolve_enabled(bool *value){
+    *value = is_logging_of_evolve_enabled;
     return 0;
 }
-int set_is_logging_of_evolve_enabled(int value){
-    is_logging_of_evolve_enabled = value == 1;
+int set_is_logging_of_evolve_enabled(bool value){
+    is_logging_of_evolve_enabled = value;
     return 0;
 }
 

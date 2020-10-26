@@ -151,12 +151,12 @@ class CachedStellarEvolution:
 
             # open cache file
             if (os.path.isfile(particleCache.cachefn)):
-                print "Using cache: %s" % (particleCache.cachefn, )
+                print("Using cache: %s" % (particleCache.cachefn, ))
                 particleCache.isCached = True
                 particleCache.cachefh = open(particleCache.cachefn, 'rb')
 
             else:
-                print "Creating cache: %s" % (particleCache.cachefn, )
+                print("Creating cache: %s" % (particleCache.cachefn, ))
                 particleCache.isCached = False
                 particleCache.cachefh = open(particleCache.cachefn, 'wb')
                 particleCache.baseParticle = self.baseStellarEvolution.particles.add_particle(particle)                        
@@ -296,3 +296,7 @@ class ParticlesTimeseries:
 
     def stellar_type(self, index=0):
         return self.list_value_in(self.particles[index].stellar_type, units.stellar_type)
+
+
+CachedSE = CachedStellarEvolution
+Cachedse = CachedStellarEvolution

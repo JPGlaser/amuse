@@ -1,15 +1,18 @@
-AMUSE_DIR?=../../../..
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
 -include ${AMUSE_DIR}/config.mk
 
 PYTHON ?= python
 
 ARGPARSE_AVAILABLE := $(shell $(PYTHON) -c "import argparse"  1>&2 2> /dev/null && echo "yes" || echo "no")
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 CLASSNAME=KromeInterface
 
-FFLAGS += -I./src/ -I./src/krome/build/
+FFLAGS += $(FCFLAGS) -O2 -ffree-line-length-none
+INCL = -I./src/ -I./src/krome/build/
 
 all: src/krome src/libchem.a test krome_worker
 
@@ -66,11 +69,11 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 $< $(CLASSNAME) -o $@
 
 krome_worker: src/libchem.a worker_code.f90 interface.o
-	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) worker_code.f90 interface.o -o $@ src/libchem.a  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
+	$(MPIFC) $(FFLAGS) $(INCL) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) worker_code.f90 interface.o -o $@ src/libchem.a  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
 
 
 %.o: %.f90
-	$(FC) $(FFLAGS) -c -o $@ $<
+	$(FC) $(FFLAGS) $(INCL) -c -o $@ $<
 
 clean:
 	make -C src/ clean

@@ -40,9 +40,10 @@
 ////             -G/g Semi major axis option: 0) Equal_sma
 ////                                          1) Power Law [default]
 ////                                          2) Duquennoy & Mayor (1987)
-////                                          3) Eggleton (1999)
+////                                          3) Raghavan (2010)
+////                                          4) Eggleton (1999)
 ////            Option -G requires one of the following strings:
-////                      (Equal_sma, sma_Power_Law, Duquennoy_Mayor, Eggleton)
+////                      (Equal_sma, sma_Power_Law, Duquennoy_Mayor, Raghavan, Eggleton)
 ////                   -g requires appropriate interger (see double_star.h)
 ////             -E   maximum eccentricity [1] 
 ////             -e   minimum eccentricity [0] 
@@ -265,6 +266,9 @@ char* type_string(sma_distribution smaf) {
        case Duquennoy_Mayor:
             sprintf(smaf_name, "Duquennoy_Mayor"); 
 	    break;	    
+       case Raghavan:
+            sprintf(smaf_name, "Raghavan"); 
+	    break;	    
        case Eggleton:
             sprintf(smaf_name, "Eggleton"); 
 	    break;	    
@@ -284,6 +288,8 @@ sma_distribution
         type = Equal_sma;
      else if (!strcmp(type_string, "Duquennoy_Mayor"))
         type = Duquennoy_Mayor;
+     else if (!strcmp(type_string, "Raghavan"))
+        type = Raghavan;
      else if (!strcmp(type_string, "Eggleton"))
         type = Eggleton;
      else if (!strcmp(type_string, "Unknown_smaf")) 
@@ -302,7 +308,8 @@ sma_distribution
 // Duquennoy, A., \& Mayor, M., 1991,  AAp 248, 485.
 local real smaf_Duquenoy_Mayor(real a_lower, real a_upper, 
 			       real total_mass) {
-
+//	cerr<<"smaf_Duquenoy_Mayor"<<endl;			       	
+	
     real lp_mean = 4.8;
     real lp_sigma = 2.3;
     real lp, sma;
@@ -317,6 +324,31 @@ local real smaf_Duquenoy_Mayor(real a_lower, real a_upper,
 
     return sma;
 }
+
+
+
+// Raghavan 2010, ApJS, 190, 1
+local real smaf_Raghavan(real a_lower, real a_upper, 
+			       real total_mass) {
+
+//	cerr<<"smaf_Raghavan"<<endl;			       	
+
+    real lp_mean = 5.03;
+    real lp_sigma = 2.28;
+    real lp, sma;
+    do {
+	lp = lp_mean + lp_sigma*gauss();
+	real a_tmp = pow(pow(10., lp)*cnsts.physics(seconds_per_day), 2)
+	    * (cnsts.physics(G)*cnsts.parameters(solar_mass)*
+	       total_mass)/4*pow(cnsts.mathematics(pi), 2);
+	sma = pow(a_tmp, 1./3.)/cnsts.parameters(solar_radius);
+    }
+    while(sma<a_lower || sma>=a_upper);
+
+    return sma;
+}
+
+
 
 // See Eggleton 1999 Equation 1.6.3 (in private copy of hist book).
 local real smaf_Eggleton(real a_lower, real a_upper, 
@@ -361,6 +393,9 @@ real get_random_semimajor_axis(real a_lower, real a_upper,
 	       break;
        case Duquennoy_Mayor: 
 	  a = smaf_Duquenoy_Mayor(a_lower, a_upper, m_prim+m_sec);
+	       break;
+       case Raghavan: 
+	  a = smaf_Raghavan(a_lower, a_upper, m_prim+m_sec);
 	       break;
        case Eggleton:
 	  a = smaf_Eggleton(a_lower, a_upper, m_prim, m_sec);
@@ -552,47 +587,47 @@ void print_initial_binary_distributions(real m_min,  real m_max,
 					ecc_distribution ef,  real e_exp) {
 
 
-    cout << "Use the following initial distribution functions:" << endl;
-    cout << "    -Mass function is " << type_string(mf);
+    cerr << "Use the following initial distribution functions:" << endl;
+    cerr << "    -Mass function is " << type_string(mf);
     if(mf==mf_Power_Law)
-        cout << " with exponent " << m_exp;
+        cerr << " with exponent " << m_exp;
 
     if(mf==Equal_Mass)
-        cout << " with value " << m_min << endl;
+        cerr << " with value " << m_min << endl;
     else
-        cout << "\n                      between "
+        cerr << "\n                      between "
              << m_min << " and " << m_max << endl;
-    cout << "    -mass-ratio distribution is " << type_string(qf);
+    cerr << "    -mass-ratio distribution is " << type_string(qf);
     if(qf==qf_Power_Law)
-        cout << " with exponent " << q_exp;
+        cerr << " with exponent " << q_exp;
 
     if (qf==Equal_q)
-        cout << " with value " << q_min << endl;
+        cerr << " with value " << q_min << endl;
     else if (qf!=Flat_q)
-        cout << endl;
+        cerr << endl;
     else
-        cout << "\n                      between "
+        cerr << "\n                      between "
              << q_min << " and " << q_max << endl;
 
-    cout << "    -Semi-major axis distribution is " << type_string(af);
+    cerr << "    -Semi-major axis distribution is " << type_string(af);
     if(af==sma_Power_Law)
-        cout << " with exponent " << a_exp;
+        cerr << " with exponent " << a_exp;
 
     if(af==Equal_sma)
-        cout << " with value " << a_min << endl;
+        cerr << " with value " << a_min << endl;
     else
-        cout << "\n                      between "
+        cerr << "\n                      between "
              << a_min << " and " << a_max << endl;
-    cout << "    -eccentricity distribution is " << type_string(ef);
+    cerr << "    -eccentricity distribution is " << type_string(ef);
     real e_lower = 0;
     if (e_min>=0) e_lower=e_min;
     if(ef==ecc_Power_Law)
-        cout << " with exponent " << e_exp;
+        cerr << " with exponent " << e_exp;
 
     if(ef==Equal_ecc)
-        cout << " with value " << e_lower << endl;
+        cerr << " with value " << e_lower << endl;
     else
-        cout << "\n                      between "
+        cerr << "\n                      between "
              << e_lower << " and " << e_max << endl;
   }
 
@@ -784,7 +819,7 @@ void main(int argc, char ** argv) {
 			a_min, a_max, af, a_exp, 
 			e_min, e_max, ef, e_exp, 
 			m_prim, m_sec, sma, ecc);
-	cout << "\t" << m_prim 
+	cerr << "\t" << m_prim 
 	     << "\t" << m_sec 
 	     << "\t" << sma
 	     << "\t" << ecc << endl;

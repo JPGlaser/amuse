@@ -24,6 +24,12 @@ int numDigits = numBits/4;
 string out_directory;
 std::map<int, int> local_index_map;
 
+/*
+ * We need this result_strings array to ensure that
+ * C++ strings are not reclaimed before the function ends
+ */
+string result_strings[10];
+
 Brutus *brutus = NULL;
 
 mpreal t_begin = "0";
@@ -108,7 +114,8 @@ int set_t_begin_string(char* tb) {
     return 0;
 }
 int get_t_begin_string(char **tb) {
-    *tb = (char*) t_begin.toString().c_str();
+    result_strings[0] = t_begin.toString();
+    *tb = (char*) result_strings[0].c_str();
     return 0;
 }
 int set_t_begin(double tb) {
@@ -136,7 +143,8 @@ int set_eta_string(char* myeta) {
     return 0;
 }
 int get_eta_string(char **myeta) {
-    *myeta = (char*) eta.toString().c_str();
+    result_strings[0] = eta.toString();
+    *myeta = (char*) result_strings[0].c_str();
     return 0;
 }
 int set_eta(double myeta) {
@@ -160,7 +168,8 @@ int set_t_string(char* tt) {
     return 0;
 }
 int get_t_string(char **tt) {
-    *tt = (char*) t.toString().c_str();
+    result_strings[0] = t.toString();
+    *tt = (char*) result_strings[0].c_str();
     return 0;
 }
 int set_t(double tt) {
@@ -185,7 +194,8 @@ int set_bs_tolerance_string(char *bs_tolerance) {
     return 0;
 }
 int get_bs_tolerance_string(char **bs_tolerance) {
-    *bs_tolerance = (char*) epsilon.toString().c_str();
+    result_strings[0] = epsilon.toString();
+    *bs_tolerance = (char*) result_strings[0].c_str();
     return 0;
 }
 int set_bs_tolerance(double bs_tolerance) {
@@ -245,11 +255,13 @@ int recommit_parameters() {
 }
 
 // Get/set particle properties
+std::string mass_string;
 int get_mass_string(int id, char **mass) {
   if (id < 0 || id >= particle_id_counter){
     return -1;
   }
-  *mass = (char*) data[id*7+0].toString().c_str();
+  mass_string = data[id*7+0].toString();
+  *mass = (char*) mass_string.c_str();
   return 0;
 } 
 int set_mass_string(int id, char *mass) {
@@ -273,14 +285,19 @@ int set_mass(int id, double mass) {
   data[id*7+0] = (mpreal)mass;
   return 0;
 }
-
+std::string position_string_x;
+std::string position_string_y;
+std::string position_string_z;
 int get_position_string(int id, char **x, char **y, char **z) {
   if (id < 0 || id >= particle_id_counter){
     return -1;
   }
-  *x = (char*) data[id*7+1].toString().c_str();
-  *y = (char*) data[id*7+2].toString().c_str();
-  *z = (char*) data[id*7+3].toString().c_str();
+  position_string_x = data[id*7+1].toString();
+  position_string_y = data[id*7+2].toString();
+  position_string_z = data[id*7+3].toString();
+  *x = (char*) position_string_x.c_str();
+  *y = (char*) position_string_y.c_str();
+  *z = (char*) position_string_z.c_str();
   return 0;
 }
 int set_position_string(int id, char *x, char *y, char *z) {
@@ -311,13 +328,19 @@ int set_position(int id, double x, double y, double z) {
   return 0;
 }
 
+std::string velocity_string_vx;
+std::string velocity_string_vy;
+std::string velocity_string_vz;
 int get_velocity_string(int id, char **vx, char **vy, char **vz) {
   if (id < 0 || id >= particle_id_counter){
     return -1;
   }
-  *vx = (char*) data[id*7+4].toString().c_str();
-  *vy = (char*) data[id*7+5].toString().c_str();
-  *vz = (char*) data[id*7+6].toString().c_str();
+  velocity_string_vx = data[id*7+4].toString();
+  velocity_string_vy = data[id*7+5].toString();
+  velocity_string_vz = data[id*7+6].toString();
+  *vx = (char*) velocity_string_vx.c_str();
+  *vy = (char*) velocity_string_vy.c_str();
+  *vz = (char*) velocity_string_vz.c_str();
   return 0;
 }
 int set_velocity_string(int id, char* vx, char* vy, char* vz) {
@@ -348,18 +371,34 @@ int set_velocity(int id, double vx, double vy, double vz) {
   return 0;
 }
 
-int get_state_string(int id, char** m, char** x, char** y, char** z, char** vx, char** vy, char** vz, char** radius) {
+std::string get_state_strings_m;
+std::string get_state_strings_x;
+std::string get_state_strings_y;
+std::string get_state_strings_z;
+std::string get_state_strings_vx;
+std::string get_state_strings_vy;
+std::string get_state_strings_vz;
+std::string get_state_strings_r;
+int get_state_string(int id, char** m, char** x, char** y, char** z, char** vx, char** vy, char** vz, char** radius) {  
   if (id < 0 || id >= particle_id_counter){
     return -1;
   }
-  *radius = (char*) data_radius[id].toString().c_str();
-  *m = (char*) data[id*7+0].toString().c_str();
-  *x = (char*) data[id*7+1].toString().c_str();
-  *y = (char*) data[id*7+2].toString().c_str();
-  *z = (char*) data[id*7+3].toString().c_str();
-  *vx = (char*) data[id*7+4].toString().c_str();
-  *vy = (char*) data[id*7+5].toString().c_str();
-  *vz = (char*) data[id*7+6].toString().c_str();
+    get_state_strings_m=data[id*7+0].toString();
+    get_state_strings_x=data[id*7+1].toString();
+    get_state_strings_y=data[id*7+2].toString();
+    get_state_strings_z=data[id*7+3].toString();
+    get_state_strings_vx=data[id*7+4].toString();
+    get_state_strings_vy=data[id*7+5].toString();
+    get_state_strings_vz=data[id*7+6].toString();
+    get_state_strings_r= data_radius[id].toString();
+  *m = (char*) get_state_strings_m.c_str();
+  *x = (char*) get_state_strings_x.c_str();
+  *y = (char*) get_state_strings_y.c_str();
+  *z = (char*) get_state_strings_z.c_str();
+  *vx = (char*) get_state_strings_vx.c_str();
+  *vy = (char*) get_state_strings_vy.c_str();
+  *vz = (char*) get_state_strings_vz.c_str();
+  *radius = (char*) get_state_strings_r.c_str();
   return 0;
 }
 int set_state_string(int id, char* m, char* x, char* y, char* z, char* vx, char* vy, char* vz, char* radius) {
@@ -405,11 +444,13 @@ int set_state(int id, double m, double x, double y, double z, double vx, double 
   return 0;
 }
 
+std::string radius_string;
 int get_radius_string(int id, char** radius){ 
   if (id < 0 || id >= particle_id_counter){
     return -1;
   }
-  *radius = (char*) data_radius[id].toString().c_str();
+  radius_string = data_radius[id].toString();
+  *radius = (char*) radius_string.c_str();
   return 0;
 }
 int set_radius_string(int id, char* radius) {
@@ -481,6 +522,18 @@ int get_total_radius(double* R){return -2;}
 int get_index_of_first_particle(int* id){return -2;}
 int get_index_of_next_particle(int id, int* idnext){return -2;}
 
+std::string total_mass_string;
+int get_total_mass_string(char **M){ 
+  int N = data.size()/7;
+  mpreal Mtot = "0";
+  for(int i=0; i<N; i++) {
+    Mtot += data[i*7];
+  }
+  total_mass_string=Mtot.toString();
+  *M = (char*) total_mass_string.c_str();
+  return 0;
+}
+
 int get_total_mass(double* M){ 
   int N = data.size()/7;
   mpreal Mtot = "0";
@@ -490,21 +543,7 @@ int get_total_mass(double* M){
   *M = Mtot.toDouble();
   return 0;
 }
-int get_kinetic_energy(double* ek) {
-  int N = data.size()/7;
-  mpreal ektot = "0";
-  for(int i=0; i<N; i++) {
-    mpreal m  = data[i*7];
-    mpreal vx = data[i*7+4];
-    mpreal vy = data[i*7+5];
-    mpreal vz = data[i*7+6];
-    mpreal v2 = vx*vx + vy*vy + vz*vz;
-    ektot += "0.5"*m*v2;
-  }
-  *ek = ektot.toDouble();
-  return 0;
-}
-int get_potential_energy(double* ep) {
+int get_potential_energy_m(mpreal* ep) {
   int N = data.size()/7;
   mpreal eptot = "0";
   for(int i=0; i<N-1; i++) {
@@ -527,9 +566,73 @@ int get_potential_energy(double* ep) {
     }
   }  
 
+  *ep = eptot;
+  return 0;
+}
+
+std::string potential_energy_string;
+
+int get_potential_energy_string( char **ep) {
+    mpreal eptot = "0";
+    get_potential_energy_m(&eptot);
+    potential_energy_string=eptot.toString();
+    *ep =(char*) potential_energy_string.c_str();
+    return 0;
+}
+
+int get_kinetic_energy_m(mpreal* ek) {
+  int N = data.size()/7;
+  mpreal ektot = "0";
+  for(int i=0; i<N; i++) {
+    mpreal m  = data[i*7];
+    mpreal vx = data[i*7+4];
+    mpreal vy = data[i*7+5];
+    mpreal vz = data[i*7+6];
+    mpreal v2 = vx*vx + vy*vy + vz*vz;
+    ektot += "0.5"*m*v2;
+  }
+  *ek = ektot;
+  return 0;
+}
+
+std::string kinetic_energy_string;
+
+int get_kinetic_energy_string( char **ep) {
+    mpreal ektot = "0";
+    get_kinetic_energy_m(&ektot);
+    kinetic_energy_string=ektot.toString();
+    *ep =(char*) kinetic_energy_string.c_str();
+    return 0;
+}
+
+std::string total_energy_string;
+
+int get_total_energy_string( char **ep) {
+    mpreal ektot = "0";   
+    mpreal eptot = "0";   
+    mpreal etot = "0";
+    get_potential_energy_m(&eptot);
+    get_kinetic_energy_m(&ektot);
+    etot = ektot + eptot;
+    total_energy_string=etot.toString();
+    *ep =(char*) total_energy_string.c_str();
+    return 0;
+}
+
+int get_potential_energy(double* ep) {
+  mpreal eptot = "0";
+  get_potential_energy_m(&eptot);
   *ep = eptot.toDouble();
   return 0;
 }
+
+int get_kinetic_energy(double* ek) {
+  mpreal ektot = "0";
+  get_kinetic_energy_m(&ektot);
+  *ek = ektot.toDouble();
+  return 0;
+}
+
 int get_center_of_mass_position(double* x , double* y, double* z){ 
   int N = data.size()/7;
   mpreal Mtot = "0";
